@@ -22,12 +22,14 @@ import { jsPDF } from 'jspdf';
 // if all the exams have the same teacher, then dont show the language option, since the teacher only uses one language
 
 // todo:
-// exam filtering when downloading according to language and teacher *
-// support for english exams in pdf *
-// add support for exam on side option *
-// add support for incorrect option *
-// instantaneous progress bar *
-// session permanent download settings *
+// exam filtering when downloading according to language and teacher ***
+// support for english exams in pdf ***
+// add support for exam on side option ***
+// add support for incorrect option ***
+// instantaneous progress bar ***
+// session permanent download settings ***
+// multiple line support for titles ***
+// stop using iframes somehow ***
 // download settings reset to default
 // download settings for title & answer font size and color
 //     - look for the perfect default for these
@@ -41,7 +43,6 @@ import { jsPDF } from 'jspdf';
 // control over exam order when downloading
 // real-time question preview when downloaded on a pdf inside download settings
 // specific word styling support for titles
-// multiple line support for titles
 // remove unnecessary punctuation marks from titles (e.g: "Assign 6")
 // exam differentiation by turning subject, teacher and date created into hexadecimal strings to use as an ID
 // json to pdf refactoring and optimizations
@@ -65,7 +66,6 @@ import { jsPDF } from 'jspdf';
 // only show selection checkboxes and header data when the user prompts selection, e.g on the click of a button somewhere
 // option to use the chrome print option to print pages, by opening multiple windows and running window.print()
 // make use of .prepend()
-// stop using iframes somehow *
 // optimize by using one image for multiple questions that fit a page
 // change to arabic
 // when nothing is selected, dont show buttons (maybe including checkbox) in header
@@ -83,12 +83,16 @@ import { jsPDF } from 'jspdf';
 // loading circle when downloading pdf with huge exams
 // option to show exam name for each question, or exam names grouped in the footer of the page for the questions of that page
 // change github readme
+// full pdf preview, and specific question editing in that preview (see digital technology exams)
+// compression option
+// show final file size estimate before downloading and time estimate
+// find out how to optimize file size
 
 // bugs:
 // downloading more than 50 exams stops parsing question at the -57th question
 // downloading does not progress while window is not focused
 //    - progress bar does not move when window is not focused
-// merging english & arabic alphanumerics into one word breaks the arabic ligatures
+// merging english alphanumerics or arabic digits with arabic letters breaks the arabic ligatures
 // option menus are slow
 // option menu shows transparent options sometimes
 // option menu disables scrollbar *

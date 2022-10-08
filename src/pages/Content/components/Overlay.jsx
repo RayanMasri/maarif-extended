@@ -161,11 +161,15 @@ function Overlay(props) {
     let total = 0;
     let page = window.jsPDF.internal.pageSize.getHeight();
 
+    console.log(`Calculating clusters:`);
+    console.log(questions);
     for (let question of questions) {
       let height = getQuestionHeightEstimate(question);
+      console.log(`Height for ${question.title} is ${height}`);
 
       if (total + height > page) {
         clusters.push(current);
+        console.log(`New cluster`);
         current = [];
         total = 0;
       }

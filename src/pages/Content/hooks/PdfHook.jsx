@@ -88,14 +88,22 @@ export default function usePdfHook() {
       Array.from(question.querySelectorAll('p')).map((p) => {
         // If paragraph element inside title container has any text content when trimmed, append to temporary div
         if (p.textContent.trim()) {
+          // If this paragraph is not the first
+          if (div.children.length != 0) {
+            // Add a line break behind it
+            let lineBreak = document.createElement('p');
+            lineBreak.textContent = '<br/>';
+            div.appendChild(lineBreak);
+          }
           div.appendChild(p);
         }
       });
       let title = div.textContent.replace(/\u00A0/g, '').trim();
-      // }
 
       let answers = Array.from(
-        question.querySelectorAll('#Multiple_Choice > div')
+        Array.from(question.children).find((child) =>
+          child.className.includes('RadioButtonList')
+        ).children
       );
 
       let parsed = [];
@@ -411,8 +419,15 @@ export default function usePdfHook() {
     return origin + title.height + answers.height;
   };
 
+  const getTitleHeightEstimate = (title) => {
+    let lines = (title.match(/<br\/>/g) || []).length + 1;
+    // let lines = 1;
+    let height = title.trim() ? ((fontSize * 1.5) / ratio) * lines : 0;
+    return height;
+  };
+
   const getQuestionHeightEstimate = (question) => {
-    let title = question.title.trim() ? (fontSize * 1.5) / ratio : 0;
+    let title = getTitleHeightEstimate(question.title);
     let answers = (answerFontSize * 1.5 * question.answers.length) / ratio;
     let image = (question.image.height || 0) / ratio;
     return title + answers + image;
@@ -542,7 +557,7 @@ export default function usePdfHook() {
           ? pdf.internal.pageSize.getWidth() -
             questions[index].image.width / ratio
           : 0) - sideMargin,
-        offset + (questions[index].title.trim() ? (fontSize * 1.5) / ratio : 0),
+        offset + getTitleHeightEstimate(questions[index].title),
         questions[index].image.width / ratio,
         questions[index].image.height / ratio
       );
