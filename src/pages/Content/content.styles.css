@@ -1,0 +1,76 @@
+.MuiButtonBase-root {
+  border: none;
+  height: max-content;
+  text-shadow: none;
+}
+
+.MuiButtonBase-root:hover {
+  background-image: none;
+  text-decoration: none;
+}
+
+.MuiButtonBase-root:active {
+  background-image: none;
+  border: none;
+  box-shadow: none;
+}
+
+.MuiCheckbox-root > .MuiSvgIcon-root {
+  width: 24px;
+  height: 24px;
+}
+
+.popover-menu {
+  z-index: 35001 !important;
+}
+
+.overlay-btn {
+  background-color: #4c4f53 !important;
+  color: #ececec !important;
+}
+
+.mxd-answers {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  width: max-content;
+  height: max-content;
+}
+
+/* .mxd-answers-side-other > .answer > .mxd-checkbox {
+  display: flex !important;
+  margin: 0px 0px 0px 0px !important;
+}
+
+.mxd-answers-side-other > .answer > .content {
+  display: none !important;
+}
+
+.mxd-answers-side-main > .answer > .mxd-checkbox {
+  display: none !important;
+}
+
+.mxd-answers-side-main > .answer > .content {
+  display: flex !important;
+} */
+
+/* .mxd-answers > .answer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arabic;
+} */
+
+/* .mxd-answers > .answer > .checkbox {
+  width: max-content;
+  display: flex;
+  align-items: center;
+} */
+
+.MuiLinearProgress-root {
+  transition: none !important;
+}
+.MuiLinearProgress-root > .MuiLinearProgress-bar {
+  transition: none !important;
+}

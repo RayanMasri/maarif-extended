@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "description": "Add extended utilities to the maarif website",
+  "name": "Maarif Extender",
+  "options_page": "options.html",
+  "background": { "service_worker": "background.bundle.js" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon-34.png"
+  },
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://dashboard.maarif.com.sa/*",
+        "https://smartems-dash.maarif.com.sa/*",
+        "https://smartqb-dash.maarif.com.sa/*"
+      ],
+      "js": ["contentScript.bundle.js"],
+      "css": ["content.styles.css"]
+    }
+  ],
+  "devtools_page": "devtools.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content.styles.css",
+        "icon-128.png",
+        "icon-34.png",
+        "checkbox-right.svg",
+        "checkbox-wrong.svg",
+        "checkbox.svg",
+        "trado.ttf"
+      ],
+      "matches": [
+        "https://smartems-dash.maarif.com.sa/*",
+        "https://smartqb-dash.maarif.com.sa/*"
+      ]
+    }
+  ]
+}
