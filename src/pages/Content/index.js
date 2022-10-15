@@ -58,6 +58,8 @@ import { jsPDF } from 'jspdf';
 //  - how many arabic and english questions were downloaded
 //  - file size
 // add multiple language support in one pdf for JSON & PDF file types
+// - add this as an option, and when enabled, think of it as downloading all the english exams and conjoining them with all the arabic exams in the end of the pdf, so there wont be any mixed questions between them
+// - and also dont allow english and arabic questions to be in one page
 // add subject filter
 // hide/disable cancel button when not able to cancel
 // when using promise.all to run concurrently, assign each result an index, and sort later accordingly
@@ -224,6 +226,11 @@ const init = async () => {
     }; // <--- `this.result` contains a base64 data URI
     reader.readAsBinaryString(blob);
   });
+
+  console.log(
+    `Set local storage jsPDF page width to: ${pdf.internal.pageSize.getWidth()}`
+  );
+  localStorage.setItem('js-pdf-page-width', pdf.internal.pageSize.getWidth());
 
   window.jsPDF = pdf;
 };

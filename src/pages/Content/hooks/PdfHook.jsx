@@ -63,6 +63,7 @@ export default function usePdfHook() {
 
   const extractData = async (doc, fixIncorrect) => {
     let questions = [];
+    let examTitle = doc.querySelector('.Title').innerHTML;
 
     // Images might be contained in:
     // a div with the class name ".QuestionImage"
@@ -138,6 +139,7 @@ export default function usePdfHook() {
         title: title,
         image: image,
         answers: parsed,
+        examTitle: examTitle,
       });
       console.log(questions);
     }
@@ -444,8 +446,7 @@ export default function usePdfHook() {
   };
 
   const getTitleHeightEstimate = (title) => {
-    // FIXME:
-    let lines = getTitleLines(title) + 1;
+    let lines = getTitleLines(title);
 
     // let lines = 1;
     let height = title.trim() ? ((fontSize * 1.5) / ratio) * lines : 0;
@@ -492,54 +493,74 @@ export default function usePdfHook() {
     ${questions
       .map((question, index) => {
         return `
-            <div>
-              <div class="mxd-title" style="font-size: ${fontSize}px">${getTitleLines(
-          question.title
-        )}${question.title}</div>
-              ${
-                question.image.source
-                  ? `<div style="background-color: red; width: ${question.image.width}px; height: ${question.image.height}px;">&nbsp;</div>`
-                  : ''
-              }
-              <div class="mxd-answers">
-              ${question.answers
-                .map((answer) => {
-                  let checkboxRaw = `<div class="mxd-checkbox" style="width: max-content; align-items: center; height: ${
-                    answerFontSize * 1.5
-                  }px; margin: ${
-                    rtl
-                      ? `0px 0px 0px ${
-                          constants.sideMargin * (answerOnSide ? 2 : 1) * ratio
-                        }px`
-                      : `0px ${
-                          constants.sideMargin * (answerOnSide ? 2 : 1) * ratio
-                        }px 0px 0px`
-                    // } display: flex">
-                    // }; display: ${answerOnSide ? 'none' : 'flex'};">
-                  }; display: flex;">
-                    ${getRawSvgFromDecision(answer.correct)}
-                  </div>`;
+            <div style="display: flex; flex-direction: row-reverse; justify-content: space-between;">
+              <div class="debug" style="display: flex; justify-content: flex-start; flex-direction: column; align-items: ${
+                rtl ? 'flex-end' : 'flex-start'
+              }; margin: ${
+          rtl
+            ? `0px 0px 0px ${constants.sideMargin * 2 * ratio}px`
+            : `0px ${constants.sideMargin * 2 * ratio}px 0px 0px`
+        }; width: max-content;">
+                <div style="width: max-content;">Lines: ${getTitleLines(
+                  question.title
+                )}</div>
+                <div style="width: max-content;">Exam title: ${
+                  question.examTitle
+                }</div>
+              </div>
+              <div>
+                <div class="mxd-title" style="font-size: ${fontSize}px; display: flex; justify-content: space-between; align-items: center; height: max-content;">
+                  ${question.title}  
+                </div>
+                ${
+                  question.image.source
+                    ? `<div style="background-color: red; width: ${question.image.width}px; height: ${question.image.height}px;">&nbsp;</div>`
+                    : ''
+                }
+                <div class="mxd-answers">
+                ${question.answers
+                  .map((answer) => {
+                    let checkboxRaw = `<div class="mxd-checkbox" style="width: max-content; align-items: center; height: ${
+                      answerFontSize * 1.5
+                    }px; margin: ${
+                      rtl
+                        ? `0px 0px 0px ${
+                            constants.sideMargin *
+                            (answerOnSide ? 2 : 1) *
+                            ratio
+                          }px`
+                        : `0px ${
+                            constants.sideMargin *
+                            (answerOnSide ? 2 : 1) *
+                            ratio
+                          }px 0px 0px`
+                      // } display: flex">
+                      // }; display: ${answerOnSide ? 'none' : 'flex'};">
+                    }; display: flex;">
+                      ${getRawSvgFromDecision(answer.correct)}
+                    </div>`;
 
-                  let contentRaw = `<div class="content" style="display: flex;">${answer.answer}</div>`;
+                    let contentRaw = `<div class="content" style="display: flex;">${answer.answer}</div>`;
 
-                  return `
-                    <div class="answer" style="display: flex; justify-content: ${
-                      answerOnSide
-                        ? `space-between; width: ${
-                            // Multiply side margin by two, one time to even out the side margin on the left and a second to show it
-                            pdf.internal.pageSize.getWidth() * ratio
-                          }px;`
-                        : 'flex-start'
-                    } align-items: center; font-family: Arabic; font-size: ${answerFontSize}px;">
-                      ${
+                    return `
+                      <div class="answer" style="display: flex; justify-content: ${
                         answerOnSide
-                          ? `${contentRaw}${checkboxRaw}`
-                          : `${checkboxRaw}${contentRaw}`
-                      }
-                    </div>
-                  `;
-                })
-                .join('')}
+                          ? `space-between; width: ${
+                              // Multiply side margin by two, one time to even out the side margin on the left and a second to show it
+                              pdf.internal.pageSize.getWidth() * ratio
+                            }px;`
+                          : 'flex-start'
+                      } align-items: center; font-family: Arabic; font-size: ${answerFontSize}px;">
+                        ${
+                          answerOnSide
+                            ? `${contentRaw}${checkboxRaw}`
+                            : `${checkboxRaw}${contentRaw}`
+                        }
+                      </div>
+                    `;
+                  })
+                  .join('')}
+                </div>
               </div>
             </div>
           `;
@@ -565,6 +586,19 @@ export default function usePdfHook() {
       cluster.width,
       cluster.height
     );
+
+    // question height debug
+    // let total = 0;
+    // questions.map((question, index) => {
+    //   let height = getQuestionHeightEstimate(question);
+
+    //   pdf.setDrawColor(index % 2 == 0 ? 255 : 0, index % 2 == 0 ? 0 : 255, 0);
+    //   console.log(index);
+    //   console.log(height);
+    //   pdf.line(150, total, 150, total + height);
+
+    //   total += height;
+    // });
 
     console.log(`fill-pdf: 5`);
 
