@@ -30,6 +30,7 @@ import { jsPDF } from 'jspdf';
 // session permanent download settings ***
 // multiple line support for titles ***
 // stop using iframes somehow ***
+// add support for underlines ***
 // download settings reset to default
 // download settings for title & answer font size and color
 //     - look for the perfect default for these
@@ -62,12 +63,11 @@ import { jsPDF } from 'jspdf';
 // when using promise.all to run concurrently, assign each result an index, and sort later accordingly
 // when scraping title, don't use a temporary div while keeping <strong> and other stylings
 // prevent active exams from being downloading or interacted with, disable their checkbox and download button or something
-// add support for underlines
 // only show selection checkboxes and header data when the user prompts selection, e.g on the click of a button somewhere
 // option to use the chrome print option to print pages, by opening multiple windows and running window.print()
 // make use of .prepend()
 // optimize by using one image for multiple questions that fit a page
-// change to arabic
+// ability to switch locale between arabic & english
 // when nothing is selected, dont show buttons (maybe including checkbox) in header
 // show header buttons inside table column
 // change tab title when downloading and show progress message, change back title when done
@@ -87,8 +87,23 @@ import { jsPDF } from 'jspdf';
 // compression option
 // show final file size estimate before downloading and time estimate
 // find out how to optimize file size
-
+// use local storage to store data for exams to only fetch once
+// fetch exams while user is on the overlay, and show download button as disabled and a loading on it
+// custom user questions and answers that can be exported and imported as json files
+// - also has the ability to randomize it's own four answers with one being the correct, and three being taken from other questions ( requires a minimum of 4 questions )
+// question vertical spacing to differentiate
+// strong title detector
+// strong title toggler (if detected, or either way an ability to toggle if necessary)
+// option to customize spacing between questions, or option to shwo lines between them, or no spacing at all
+// advanced section of setting
+// make download button called start, and after finishing create a confirm/download button to download it
+// show preview after finishing
+// fetch and create pdf in background script
+// show exam name as header above all the questions in the exam to differentiate between exams
+// fix title overflow in irregular no.3
 // bugs:
+// br is too long
+// slow responses (e.g: on cancel button) after finishing downloading for about 5 seconds
 // downloading more than 50 exams stops parsing question at the -57th question
 // downloading does not progress while window is not focused
 //    - progress bar does not move when window is not focused
@@ -96,6 +111,12 @@ import { jsPDF } from 'jspdf';
 // option menus are slow
 // option menu shows transparent options sometimes
 // option menu disables scrollbar *
+// debug to show how much lines a title has
+
+// irregulars:
+// https://smartems-dash.maarif.com.sa/ems/admin/exam.correct.answer/31860022/#!#rel (فطريات 3)
+// https://smartems-dash.maarif.com.sa/ems/admin/exam.correct.answer/31860020/#!#rel (فطريات 4)
+// https://smartems-dash.maarif.com.sa/ems/admin/exam.correct.answer/31431596/#!#rel (Assign 12)
 
 const init = async () => {
   const { append } = useUtilityHook();

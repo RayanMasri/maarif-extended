@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Checkbox from '@mui/material/Checkbox';
+import QuizIcon from '@mui/icons-material/Quiz';
+
 // import IconButton from './IconButton.jsx';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
 // import jsPDF from '../jspdf.umd.js';
@@ -70,9 +72,9 @@ function Bar(props) {
     });
   };
 
-  const onRequestDownload = () => {
+  const onRequest = (event) => {
     document.dispatchEvent(
-      new CustomEvent('request-download', { detail: { exams: [props.index] } })
+      new CustomEvent(event, { detail: { exams: [props.index] } })
     );
   };
 
@@ -114,7 +116,12 @@ function Bar(props) {
         onMouseDown={(event) => onChange(event, !state.checked)}
       />
 
-      <IconButton onClick={onRequestDownload}>
+      <IconButton onClick={() => onRequest('request-retake')}>
+        <QuizIcon sx={{ width: 24, height: 24 }} />
+      </IconButton>
+
+      {/* <IconButton onClick={onRequestDownload}> */}
+      <IconButton onClick={() => onRequest('request-download')}>
         <DownloadRoundedIcon sx={{ width: 24, height: 24 }} />
       </IconButton>
     </td>

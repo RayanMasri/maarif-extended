@@ -61,6 +61,7 @@ function Overlay(props) {
       language: 'العربية',
     },
     active: false,
+    type: null,
     teachers: [],
     languages: [],
     exams: [],
@@ -75,19 +76,20 @@ function Overlay(props) {
   };
 
   useEffect(() => {
-    document.addEventListener('request-download', onRequestDownload);
-    // let hidden = document.querySelector('.hidden-mxd-text');
+    document.addEventListener('request-download', onRequest);
+    document.addEventListener('request-retake', onRequest);
+
     let hidden = document.querySelector('.hidden-mxd');
     html2canvas(hidden, {
       width: hidden.offsetWidth,
       height: hidden.offsetHeight,
     }).then((canvas) => {
-      console.log(canvas);
       console.log(canvas.toDataURL('image/png'));
     });
 
     return () => {
-      document.removeEventListener('request-download', onRequestDownload);
+      document.removeEventListener('request-download', onRequest);
+      document.addEventListener('request-retake', onRequest);
     };
   }, []);
 
@@ -109,24 +111,7 @@ function Overlay(props) {
     return { language: language, teacher: teacher };
   };
 
-  const onRequestDownload = (event) => {
-    // let question = {
-    //   title: 'غلاف بروتيني يحيط بالفيروس يسمى :',
-    //   answers: [
-    //     { answer: 'الغشاء البلازمي', checked: false, correct: null },
-    //     { answer: 'السيتوبلازم', checked: false, correct: null },
-    //     { answer: 'الجدار الخلوي', checked: false, correct: null },
-    //     { answer: 'المحفظة', checked: true, correct: true },
-    //   ],
-    // };
-
-    // addQuestionToPdf(question, false, 'AR', 0).then(() => {
-    //   savePdf();
-    // });
-
-    // return;
-
-    console.log(`Download request: ${JSON.stringify(state.settings)}`);
+  const onRequest = (event) => {
     let exams = event.detail.exams;
     if (exams.length == 0) return;
 
@@ -137,6 +122,7 @@ function Overlay(props) {
     setState({
       ..._state.current,
       active: true,
+      type: event.type,
       languages: languages,
       teachers: teachers,
       exams: exams,
@@ -161,15 +147,11 @@ function Overlay(props) {
     let total = 0;
     let page = window.jsPDF.internal.pageSize.getHeight();
 
-    console.log(`Calculating clusters:`);
-    console.log(questions);
     for (let question of questions) {
       let height = getQuestionHeightEstimate(question);
-      console.log(`Height for ${question.title} is ${height}`);
 
       if (total + height > page) {
         clusters.push(current);
-        console.log(`New cluster`);
         current = [];
         total = 0;
       }
@@ -295,9 +277,7 @@ function Overlay(props) {
       return;
     }
 
-    console.log(json);
     json = json.flat();
-    console.log(json);
 
     // let total = 0;
     // let jsonData = (
@@ -319,8 +299,6 @@ function Overlay(props) {
 
     // 6.45x faster than previous method
     let clusters = calculateQuestionClusters(json);
-    console.log(json);
-    console.log(clusters);
     // for (let i = 0; i < clusters.length; i++) {
     //   await fillPdfWithQuestions(
     //     clusters[i],
@@ -341,17 +319,15 @@ function Overlay(props) {
         return;
       }
 
-      console.log(
-        `running cluster with ${cluster.length} questions\n${JSON.stringify(
-          cluster
-        )}`
-      );
+      console.log(`Cluster ${i + 1}: ${cluster.length} questions`);
 
       await fillPdfWithQuestions(
         clusters[i],
         state.settings.showDetailsSide,
         language
       );
+
+      console.log(`Cluster ${i + 1}: Done`);
 
       if (i + 1 != clusters.length) {
         window.jsPDF.addPage();
@@ -441,6 +417,318 @@ function Overlay(props) {
     });
   };
 
+  const getActive = () => {
+    switch (state.type) {
+      case 'request-download':
+        if (!state.downloading) {
+          return (
+            <div
+              style={{
+                width: '443px',
+                height: 'max-content',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Container style={{ justifyContent: 'center ' }}>
+                <Label style={{ fontSize: '18px' }}>
+                  Downloading {state.exams.length} exam(s)
+                </Label>
+              </Container>
+
+              <Divider
+                sx={{
+                  marginTop: '10px',
+                  marginBottom: '10px',
+                  width: '100%',
+                  backgroundColor: '#4C4F53',
+                }}
+              />
+
+              {/* File type */}
+              <Container>
+                <Label style={{ marginRight: '5px' }}>File type:</Label>
+                <Menu
+                  id="file-type"
+                  options={['PDF', 'JSON']}
+                  default={'PDF'}
+                  value={state.settings.fileType}
+                  width="265px"
+                  onChange={(value) => {
+                    setState({
+                      ...state,
+                      settings: {
+                        ...state.settings,
+                        fileType: value,
+                      },
+                    });
+                  }}
+                />
+                {/* <Select
+                id="file-type"
+                options={['PDF', 'JSON']}
+                default={'PDF'}
+                value={state.settings.fileType}
+                onChange={(value) => {
+                  setState({
+                    ...state,
+                    settings: {
+                      ...state.settings,
+                      fileType: value,
+                    },
+                  });
+                }}
+              /> */}
+              </Container>
+
+              {(state.teachers.length > 1 || state.languages.length > 1) && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'column',
+                    width: '100%',
+                  }}
+                >
+                  <Divider
+                    sx={{
+                      marginTop: '10px',
+                      width: '100%',
+                      backgroundColor: '#4C4F53',
+                    }}
+                  />
+
+                  {state.teachers.length > 1 && (
+                    <Container style={{ marginTop: '10px' }}>
+                      <Label style={{ marginRight: '5px ' }}>Teacher:</Label>
+
+                      <Menu
+                        id="teacher"
+                        options={['الكل', ...state.teachers]}
+                        default={'الكل'}
+                        value={state.settings.teacher}
+                        width="265px"
+                        onChange={(value) => {
+                          setState({
+                            ...state,
+                            settings: {
+                              ...state.settings,
+                              teacher: value,
+                            },
+                          });
+                        }}
+                      />
+                    </Container>
+                  )}
+
+                  {state.languages.length > 1 && (
+                    <Container style={{ marginTop: '10px' }}>
+                      <Label style={{ marginRight: '5px ' }}>
+                        Exam Language:
+                      </Label>
+                      <Menu
+                        id="language"
+                        options={['العربية', 'الإنجليزية']}
+                        default={'العربية'}
+                        value={state.settings.language}
+                        onChange={(value) => {
+                          setState({
+                            ...state,
+                            settings: {
+                              ...state.settings,
+                              language: value,
+                            },
+                          });
+                        }}
+                        width="265px"
+                      />
+                    </Container>
+                  )}
+                </div>
+              )}
+
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexDirection: 'column',
+                  width: '100%',
+                }}
+              >
+                <Divider
+                  sx={{
+                    marginTop: '10px',
+                    width: '100%',
+                    backgroundColor: '#4C4F53',
+                  }}
+                />
+
+                {/* Show incorrect */}
+                <Container
+                  style={{
+                    marginTop: '10px',
+                  }}
+                >
+                  <Checkbox
+                    sx={{
+                      width: 24,
+                      height: 24,
+                    }}
+                    checked={state.showIncorrect}
+                    onChange={(event, value) => {
+                      setState({
+                        ...state,
+                        settings: {
+                          ...state.settings,
+                          showIncorrect: value,
+                        },
+                      });
+                    }}
+                  />
+                  <Label
+                    style={{
+                      marginLeft: '5px',
+                    }}
+                  >
+                    Show incorrect answers from initial exam entry
+                  </Label>
+                </Container>
+
+                {/* Show details on side */}
+                <Container
+                  style={{
+                    marginTop: '10px',
+                  }}
+                >
+                  <Checkbox
+                    sx={{
+                      width: 24,
+                      height: 24,
+                    }}
+                    checked={state.showDetailsSide}
+                    onChange={(event, value) => {
+                      setState({
+                        ...state,
+                        settings: {
+                          ...state.settings,
+                          showDetailsSide: value,
+                        },
+                      });
+                    }}
+                  />
+                  <Label
+                    style={{
+                      marginLeft: '5px',
+                    }}
+                  >
+                    Show answer details on the side for effective studying
+                  </Label>
+                </Container>
+
+                <Divider
+                  sx={{
+                    marginTop: '10px',
+                    width: '100%',
+                    backgroundColor: '#4C4F53',
+                  }}
+                />
+
+                {/* Download button */}
+                <Container
+                  style={{
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Button
+                    className="overlay-btn"
+                    sx={{
+                      width: '150px',
+                      fontSize: '14px',
+                      borderRadius: '0px',
+                      marginTop: '10px',
+                      marginRight: '5px',
+                    }}
+                    onClick={onCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="overlay-btn"
+                    sx={{
+                      width: '150px',
+                      fontSize: '14px',
+                      borderRadius: '0px',
+                      marginTop: '10px',
+                    }}
+                    onClick={onDownload}
+                  >
+                    Download
+                  </Button>
+                </Container>
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div
+              style={{
+                width: '443px',
+                height: 'max-content',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                color: 'black',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '16px',
+                  overflow: 'hidden',
+                  whiteSpace: 'pre-wrap',
+                  textOverflow: 'ellipsis',
+                  width: '100%',
+                }}
+              >
+                {state.progressMessage.replace('<br/>', '\n')}
+              </div>
+
+              {/* <LinearProgressWithLabel value={50} /> */}
+              <LinearProgress
+                variant="determinate"
+                value={state.progressValue}
+                sx={{
+                  width: '100%',
+                  height: '10px',
+                  marginTop: '10px',
+                  transition: 'none',
+                }}
+                className={classes.root}
+              />
+
+              <Button
+                className="overlay-btn"
+                sx={{
+                  width: '150px',
+                  fontSize: '14px',
+                  borderRadius: '0px',
+                  marginTop: '15px',
+                }}
+                onClick={onProgressCancel}
+              >
+                Cancel
+              </Button>
+            </div>
+          );
+        }
+      case 'request-retake':
+        break;
+    }
+  };
   return (
     <div
       style={{
@@ -470,307 +758,7 @@ function Overlay(props) {
           alignItems: 'center',
         }}
       >
-        {!state.downloading ? (
-          <div
-            style={{
-              width: '443px',
-              height: 'max-content',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Container style={{ justifyContent: 'center ' }}>
-              <Label style={{ fontSize: '18px' }}>
-                Downloading {state.exams.length} exam(s)
-              </Label>
-            </Container>
-
-            <Divider
-              sx={{
-                marginTop: '10px',
-                marginBottom: '10px',
-                width: '100%',
-                backgroundColor: '#4C4F53',
-              }}
-            />
-
-            {/* File type */}
-            <Container>
-              <Label style={{ marginRight: '5px' }}>File type:</Label>
-              <Menu
-                id="file-type"
-                options={['PDF', 'JSON']}
-                default={'PDF'}
-                value={state.settings.fileType}
-                width="265px"
-                onChange={(value) => {
-                  setState({
-                    ...state,
-                    settings: {
-                      ...state.settings,
-                      fileType: value,
-                    },
-                  });
-                }}
-              />
-              {/* <Select
-                id="file-type"
-                options={['PDF', 'JSON']}
-                default={'PDF'}
-                value={state.settings.fileType}
-                onChange={(value) => {
-                  setState({
-                    ...state,
-                    settings: {
-                      ...state.settings,
-                      fileType: value,
-                    },
-                  });
-                }}
-              /> */}
-            </Container>
-
-            {(state.teachers.length > 1 || state.languages.length > 1) && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  flexDirection: 'column',
-                  width: '100%',
-                }}
-              >
-                <Divider
-                  sx={{
-                    marginTop: '10px',
-                    width: '100%',
-                    backgroundColor: '#4C4F53',
-                  }}
-                />
-
-                {state.teachers.length > 1 && (
-                  <Container style={{ marginTop: '10px' }}>
-                    <Label style={{ marginRight: '5px ' }}>Teacher:</Label>
-
-                    <Menu
-                      id="teacher"
-                      options={['الكل', ...state.teachers]}
-                      default={'الكل'}
-                      value={state.settings.teacher}
-                      width="265px"
-                      onChange={(value) => {
-                        setState({
-                          ...state,
-                          settings: {
-                            ...state.settings,
-                            teacher: value,
-                          },
-                        });
-                      }}
-                    />
-                  </Container>
-                )}
-
-                {state.languages.length > 1 && (
-                  <Container style={{ marginTop: '10px' }}>
-                    <Label style={{ marginRight: '5px ' }}>
-                      Exam Language:
-                    </Label>
-                    <Menu
-                      id="language"
-                      options={['العربية', 'الإنجليزية']}
-                      default={'العربية'}
-                      value={state.settings.language}
-                      onChange={(value) => {
-                        setState({
-                          ...state,
-                          settings: {
-                            ...state.settings,
-                            language: value,
-                          },
-                        });
-                      }}
-                      width="265px"
-                    />
-                  </Container>
-                )}
-              </div>
-            )}
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                flexDirection: 'column',
-                width: '100%',
-              }}
-            >
-              <Divider
-                sx={{
-                  marginTop: '10px',
-                  width: '100%',
-                  backgroundColor: '#4C4F53',
-                }}
-              />
-
-              {/* Show incorrect */}
-              <Container
-                style={{
-                  marginTop: '10px',
-                }}
-              >
-                <Checkbox
-                  sx={{
-                    width: 24,
-                    height: 24,
-                  }}
-                  checked={state.showIncorrect}
-                  onChange={(event, value) => {
-                    setState({
-                      ...state,
-                      settings: {
-                        ...state.settings,
-                        showIncorrect: value,
-                      },
-                    });
-                  }}
-                />
-                <Label
-                  style={{
-                    marginLeft: '5px',
-                  }}
-                >
-                  Show incorrect answers from initial exam entry
-                </Label>
-              </Container>
-
-              {/* Show details on side */}
-              <Container
-                style={{
-                  marginTop: '10px',
-                }}
-              >
-                <Checkbox
-                  sx={{
-                    width: 24,
-                    height: 24,
-                  }}
-                  checked={state.showDetailsSide}
-                  onChange={(event, value) => {
-                    setState({
-                      ...state,
-                      settings: {
-                        ...state.settings,
-                        showDetailsSide: value,
-                      },
-                    });
-                  }}
-                />
-                <Label
-                  style={{
-                    marginLeft: '5px',
-                  }}
-                >
-                  Show answer details on the side for effective studying
-                </Label>
-              </Container>
-
-              <Divider
-                sx={{
-                  marginTop: '10px',
-                  width: '100%',
-                  backgroundColor: '#4C4F53',
-                }}
-              />
-
-              {/* Download button */}
-              <Container
-                style={{
-                  justifyContent: 'center',
-                }}
-              >
-                <Button
-                  className="overlay-btn"
-                  sx={{
-                    width: '150px',
-                    fontSize: '14px',
-                    borderRadius: '0px',
-                    marginTop: '10px',
-                    marginRight: '5px',
-                  }}
-                  onClick={onCancel}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="overlay-btn"
-                  sx={{
-                    width: '150px',
-                    fontSize: '14px',
-                    borderRadius: '0px',
-                    marginTop: '10px',
-                  }}
-                  onClick={onDownload}
-                >
-                  Download
-                </Button>
-              </Container>
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              width: '443px',
-              height: 'max-content',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              color: 'black',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '16px',
-                overflow: 'hidden',
-                whiteSpace: 'pre-wrap',
-                textOverflow: 'ellipsis',
-                width: '100%',
-              }}
-            >
-              {state.progressMessage.replace('<br/>', '\n')}
-            </div>
-
-            {/* <LinearProgressWithLabel value={50} /> */}
-            <LinearProgress
-              variant="determinate"
-              value={state.progressValue}
-              sx={{
-                width: '100%',
-                height: '10px',
-                marginTop: '10px',
-                transition: 'none',
-              }}
-              className={classes.root}
-            />
-
-            <Button
-              className="overlay-btn"
-              sx={{
-                width: '150px',
-                fontSize: '14px',
-                borderRadius: '0px',
-                marginTop: '15px',
-              }}
-              onClick={onProgressCancel}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
+        {getActive()}
       </div>
     </div>
   );

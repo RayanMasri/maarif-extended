@@ -82,23 +82,28 @@ export default function usePdfHook() {
       //     image.width
       //   }x${image.height}`;
       // } else {
-      // FIXME: involve underlines and multiple lines, etc...
       // Create a temporary div to tidy the title text
       let div = document.createElement('div');
-      Array.from(question.querySelectorAll('p')).map((p) => {
-        // If paragraph element inside title container has any text content when trimmed, append to temporary div
-        if (p.textContent.trim()) {
-          // If this paragraph is not the first
-          if (div.children.length != 0) {
-            // Add a line break behind it
-            let lineBreak = document.createElement('p');
-            lineBreak.textContent = '<br/>';
-            div.appendChild(lineBreak);
+      div.className = 'extracted-data';
+      Array.from(question.children)
+        .filter((item) => item.tagName == 'P')
+        .map((p) => {
+          // If paragraph element inside title container has any text content when trimmed, append to temporary div
+          if (p.textContent.trim()) {
+            // If this paragraph is not the first
+            // if (div.children.length != 0) {
+            //   // Add a line break behind it
+            //   let lineBreak = document.createElement('br');
+            //   // let lineBreak = document.createElement('p');
+            //   // lineBreak.textContent = '<br/>';
+            //   div.appendChild(lineBreak);
+            // }
+            p.style = 'margin-bottom: 0px;';
+            div.appendChild(p);
           }
-          div.appendChild(p);
-        }
-      });
-      let title = div.textContent.replace(/\u00A0/g, '').trim();
+        });
+      let title = div.outerHTML;
+      // let title = div.textContent.replace(/\u00A0/g, '').trim();
 
       let answers = Array.from(
         Array.from(question.children).find((child) =>
@@ -134,6 +139,7 @@ export default function usePdfHook() {
         image: image,
         answers: parsed,
       });
+      console.log(questions);
     }
 
     return questions;
@@ -206,15 +212,19 @@ export default function usePdfHook() {
   //   return { image: base64, width: width, height: height };
   // };
   const getElementImage = async (element, rtl = true) => {
+    console.log(`get-element-image: 1`);
     let canvas = await html2canvas(element, {
       width: element.offsetWidth,
       height: element.offsetHeight,
     });
+    console.log(`get-element-image: 2`);
     // let canvas = await elementToCanvas(element, rtl);
     // console.log('got canvas');
     // console.log(canvas);
     let base64 = canvas.toDataURL('image/png');
+    console.log(`get-element-image: 3`);
     let { width, height } = await getImageDimensions(base64);
+    console.log(`get-element-image: 4`);
     // console.log('got dimensions');
 
     // width = Math.round(width / ratio);
@@ -419,8 +429,24 @@ export default function usePdfHook() {
     return origin + title.height + answers.height;
   };
 
+  const getTitleLines = (title) => {
+    let brs = title.match(/<br>/g) || [];
+    let ps = title.match(/<\/p>/g) || [];
+
+    let lines = 1;
+    if (brs.length > 0) {
+      lines += brs.length;
+    } else {
+      lines = ps.length;
+    }
+
+    return lines;
+  };
+
   const getTitleHeightEstimate = (title) => {
-    let lines = (title.match(/<br\/>/g) || []).length + 1;
+    // FIXME:
+    let lines = getTitleLines(title) + 1;
+
     // let lines = 1;
     let height = title.trim() ? ((fontSize * 1.5) / ratio) * lines : 0;
     return height;
@@ -448,6 +474,7 @@ export default function usePdfHook() {
   };
 
   const fillPdfWithQuestions = async (questions, answerOnSide, language) => {
+    console.log(`fill-pdf: 1`);
     let rtl = language == 'AR';
     let { sideMargin } = constants;
 
@@ -457,17 +484,18 @@ export default function usePdfHook() {
     let hidden = hiddenMain.children[0];
     let hiddenCanvas = hiddenMain.children[1];
     hidden.setAttribute('dir', rtl ? 'rtl' : 'ltr');
+    console.log(`fill-pdf: 2`);
 
     // TODO: Create images and wait for them to load before creating them (https://www.seancdavis.com/posts/wait-until-all-images-loaded/)
     hidden.innerHTML = `
-      <div>
-        ${questions
-          .map((question, index) => {
-            return `
+    <div>
+    ${questions
+      .map((question, index) => {
+        return `
             <div>
-              <div class="mxd-title" style="font-size: ${fontSize}px">${
-              question.title
-            }</div>
+              <div class="mxd-title" style="font-size: ${fontSize}px">${getTitleLines(
+          question.title
+        )}${question.title}</div>
               ${
                 question.image.source
                   ? `<div style="background-color: red; width: ${question.image.width}px; height: ${question.image.height}px;">&nbsp;</div>`
@@ -515,15 +543,19 @@ export default function usePdfHook() {
               </div>
             </div>
           `;
-          })
-          .join('')}
+      })
+      .join('')}
       </div>
     `;
+
+    console.log(`fill-pdf: 3`);
 
     // TODO: Open a new tab at https://smartqb-dash.maarif.com.sa and pin it to download images in exams
 
     // Get image of the loaded HTML
     let cluster = await getElementImage(hidden, rtl);
+
+    console.log(`fill-pdf: 4`);
 
     // Add image
     pdf.addImage(
@@ -534,7 +566,11 @@ export default function usePdfHook() {
       cluster.height
     );
 
+    console.log(`fill-pdf: 5`);
+
     // Get image base64 from background script of all questions in cluster with valid image sources
+
+    // TODO: dont send message if there are no images
     let response = await promisedSendMessage({
       questions: questions
         .map((question, index) => {
@@ -546,10 +582,15 @@ export default function usePdfHook() {
         .filter((question) => question.image.source != undefined),
     });
 
+    console.log(`fill-pdf: 6`);
+
     response.map(({ index, base64 }) => {
+      console.log(`fill-pdf: 6.${index + 1}.1`);
       let offset = getMultipleQuestionsHeightEstimate(
         questions.slice(0, index)
       );
+
+      console.log(`fill-pdf: 6.${index + 1}.2`);
 
       pdf.addImage(
         base64,
@@ -561,7 +602,11 @@ export default function usePdfHook() {
         questions[index].image.width / ratio,
         questions[index].image.height / ratio
       );
+
+      console.log(`fill-pdf: 6.${index + 1}.3`);
     });
+
+    console.log(`fill-pdf: 7`);
   };
 
   const addQuestionToPdf = async (question, answerOnSide, language, origin) => {

@@ -31,10 +31,13 @@ export default function useUtilityHook() {
 
   const getImageDimensions = (base64) => {
     return new Promise((resolve, reject) => {
+      console.log(`get-image-dimensions: 1`);
       // console.log(`creating image, source length: ${base64.length}`);
       let image = document.createElement('img');
+      console.log(`get-image-dimensions: 2`);
       // console.log('created image');
       image.onload = function () {
+        console.log(`get-image-dimensions: 3`);
         // console.log('image loaded');
         resolve({
           width: this.width,
