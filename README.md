@@ -1,5 +1,7 @@
 <img src="src/assets/img/icon-128.png" width="64"/>
 
+[a link](https://github.com/RayanMasri/maarif-extended/blob/main/package-lock.json)
+
 # Chrome Extension Boilerplate with React 17 and Webpack 5
 
 [![npm](https://img.shields.io/npm/v/chrome-extension-boilerplate-react)](https://www.npmjs.com/package/chrome-extension-boilerplate-react)
