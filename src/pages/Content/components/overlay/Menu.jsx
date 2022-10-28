@@ -76,6 +76,7 @@ export default function Menu(props) {
         <div
           style={{
             marginLeft: '5px',
+            textTransform: 'none',
           }}
         >
           {!props.value || !props.options.includes(props.value)

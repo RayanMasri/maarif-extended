@@ -6,21 +6,39 @@ import usePdfHook from '../hooks/PdfHook.jsx';
 import LinearProgress from '@mui/material/LinearProgress';
 import { makeStyles } from '@mui/styles';
 
-import Holder from './Holder.jsx';
+import Menu from './Menu.jsx';
 import html2canvas from 'html2canvas';
-import { Container } from './overlay/Container';
-import { Label } from './overlay/Label';
-import { Dropdown } from './overlay/Dropdown';
-import { Field } from './overlay/Field';
-import { Option } from './overlay/Option';
-import { ButtonOverlay } from './overlay/ButtonOverlay';
-import { ColorPicker } from './overlay/ColorPicker';
 
 const useStyles = makeStyles({
   root: {
     transition: 'none',
   },
 });
+
+function Container(props) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        width: '100%',
+        ...props.style,
+      }}
+    >
+      {props.children}
+    </div>
+  );
+}
+
+function Label(props) {
+  return (
+    <div style={{ color: 'black', fontSize: '16px', ...props.style }}>
+      {props.children}
+    </div>
+  );
+}
 
 function Overlay(props) {
   const classes = useStyles();
@@ -423,30 +441,21 @@ function Overlay(props) {
               <Divider
                 sx={{
                   marginTop: '10px',
+                  marginBottom: '10px',
                   width: '100%',
                   backgroundColor: '#4C4F53',
                 }}
               />
 
-              <div
-                style={{
-                  width: '100%',
-                  height: 'max-content',
-                  maxHeight: '600px',
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-start',
-                  alignItems: 'center',
-                }}
-                className="overlay-options-container"
-              >
-                {/* File type */}
-                <Dropdown
+              {/* File type */}
+              <Container>
+                <Label style={{ marginRight: '5px' }}>File type:</Label>
+                <Menu
                   id="file-type"
                   options={['PDF', 'JSON']}
                   default={'PDF'}
                   value={state.settings.fileType}
+                  width="265px"
                   onChange={(value) => {
                     setState({
                       ...state,
@@ -456,351 +465,211 @@ function Overlay(props) {
                       },
                     });
                   }}
-                  style={{ marginTop: '10px' }}
-                >
-                  File type:
-                </Dropdown>
-
-                {(state.teachers.length > 1 || state.languages.length > 1) && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      flexDirection: 'column',
-                      width: '100%',
-                    }}
-                  >
-                    <Divider
-                      sx={{
-                        marginTop: '10px',
-                        width: '100%',
-                        backgroundColor: '#4C4F53',
-                      }}
-                    />
-
-                    <Holder name="Filters" id="filters-dropdown" hierarchy={0}>
-                      {state.teachers.length > 1 && (
-                        <Dropdown
-                          id="teacher"
-                          options={['الكل', ...state.teachers]}
-                          default={'الكل'}
-                          value={state.settings.teacher}
-                          onChange={(value) => {
-                            setState({
-                              ...state,
-                              settings: {
-                                ...state.settings,
-                                teacher: value,
-                              },
-                            });
-                          }}
-                        >
-                          Teacher:
-                        </Dropdown>
-                      )}
-
-                      {state.languages.length > 1 && (
-                        <Dropdown
-                          style={{ marginTop: '10px' }}
-                          id="language"
-                          options={['العربية', 'الإنجليزية']}
-                          default={'العربية'}
-                          value={state.settings.language}
-                          onChange={(value) => {
-                            setState({
-                              ...state,
-                              settings: {
-                                ...state.settings,
-                                language: value,
-                              },
-                            });
-                          }}
-                        >
-                          Exam Language:
-                        </Dropdown>
-                      )}
-                    </Holder>
-                  </div>
-                )}
-
-                <Divider
-                  sx={{
-                    marginTop:
-                      state.teachers.length > 1 || state.languages.length > 1
-                        ? '0px'
-                        : '10px',
-                    width: '100%',
-                    backgroundColor: '#4C4F53',
-                  }}
                 />
-
-                <Option
-                  style={{ marginTop: '10px' }}
-                  checked={state.showIncorrect}
-                  onChange={(event, value) => {
-                    setState({
-                      ...state,
-                      settings: {
-                        ...state.settings,
-                        showIncorrect: value,
-                      },
-                    });
-                  }}
-                >
-                  Show wrong answers
-                </Option>
-
-                <Option
-                  style={{ marginTop: '5px' }}
-                  checked={state.showDetailsSide}
-                  onChange={(event, value) => {
-                    setState({
-                      ...state,
-                      settings: {
-                        ...state.settings,
-                        showDetailsSide: value,
-                      },
-                    });
-                  }}
-                >
-                  Show answers on the side
-                </Option>
-
-                <Divider
-                  sx={{
-                    marginTop: '10px',
-                    width: '100%',
-                    backgroundColor: '#4C4F53',
-                  }}
-                />
-
-                <Holder
-                  name="Advanced Options"
-                  id="advanced-dropdown"
-                  hierarchy={0}
-                >
-                  <Dropdown
-                    id="strong-titles"
-                    options={['Original titles', 'All titles', 'Disabled']}
-                    default={'Original titles'}
-                  >
-                    Strong titles:
-                  </Dropdown>
-                  <Divider
-                    sx={{
-                      marginTop: '10px',
-                      width: '100%',
-                      backgroundColor: '#4C4F53',
-                    }}
-                  />
-                  <Option style={{ marginTop: '10px' }}>
-                    Grayscale images
-                  </Option>
-                  <Option style={{ marginTop: '5px' }}>
-                    Developer debugging
-                  </Option>
-
-                  <Divider
-                    sx={{
-                      marginTop: '10px',
-                      width: '100%',
-                      backgroundColor: '#4C4F53',
-                    }}
-                  />
-
-                  <Holder
-                    name="Duplicate removal"
-                    id="duplicate-dropdown"
-                    parent="advanced-dropdown"
-                    hierarchy={1}
-                    noNameMargin
-                  >
-                    <Option>Remove duplicates</Option>
-                    <Divider
-                      sx={{
-                        marginTop: '10px',
-                        width: '100%',
-                        backgroundColor: '#4C4F53',
-                      }}
-                    />
-                    <Option style={{ marginTop: '10px' }}>Images</Option>
-                    <Dropdown
-                      id="image-comparison"
-                      options={['Exact pixels', 'Approximate pixels']}
-                      default={'Exact pixels'}
-                      style={{ marginTop: '5px' }}
-                    >
-                      Compare by:
-                    </Dropdown>
-                    <Field style={{ marginTop: '5px' }} postfix={'%'}>
-                      Accuracy threshold:
-                    </Field>
-                    <Divider
-                      sx={{
-                        marginTop: '10px',
-                        width: '100%',
-                        backgroundColor: '#4C4F53',
-                      }}
-                    />
-                    <Option style={{ marginTop: '10px' }}>
-                      Titles & answers
-                    </Option>
-                    <Dropdown
-                      id="text-comparison"
-                      options={['Exact text', 'Approximate text']}
-                      default={'Exact text'}
-                      style={{ marginTop: '5px' }}
-                    >
-                      Compare by:
-                    </Dropdown>
-                    <Field style={{ marginTop: '5px' }} postfix={'%'}>
-                      Accuracy threshold:
-                    </Field>
-                  </Holder>
-
-                  <Divider
-                    sx={{
-                      marginTop: '10px',
-                      width: '100%',
-                      backgroundColor: '#4C4F53',
-                    }}
-                  />
-
-                  <Holder
-                    name="Resolution"
-                    id="resolution-dropdown"
-                    parent="advanced-dropdown"
-                    hierarchy={1}
-                    noNameMargin
-                  >
-                    <Field postfix={'x'}>Resolution:</Field>
-                    <Divider
-                      sx={{
-                        marginTop: '10px',
-                        width: '100%',
-                        backgroundColor: '#4C4F53',
-                      }}
-                    />
-                    <Option style={{ marginTop: '10px' }}>Compression</Option>
-                    <Field style={{ marginTop: '5px' }} postfix={'%'}>
-                      Compression rate:
-                    </Field>
-                  </Holder>
-
-                  <Divider
-                    sx={{
-                      marginTop: '10px',
-                      width: '100%',
-                      backgroundColor: '#4C4F53',
-                    }}
-                  />
-
-                  <Holder
-                    name="Customizability & presets"
-                    id="customize-dropdown"
-                    parent="advanced-dropdown"
-                    hierarchy={1}
-                  >
-                    <Dropdown
-                      id="preset-style"
-                      options={['Original', 'Basic', 'Custom']}
-                      default={'Original'}
-                    >
-                      Preset:
-                    </Dropdown>
-                    <Field postfix={'px'} style={{ marginTop: '5px' }}>
-                      Title font size:
-                    </Field>
-                    <ColorPicker style={{ marginTop: '5px' }}>
-                      Title color:
-                    </ColorPicker>
-                    <Field postfix={'px'} style={{ marginTop: '5px' }}>
-                      Checkbox spacing:
-                    </Field>
-                    <Field postfix={'px'} style={{ marginTop: '5px' }}>
-                      Spacing between answers & titles:
-                    </Field>
-                    <Dropdown
-                      id="preset-style"
-                      options={['Pixels', 'Lines']}
-                      default={'Pixels'}
-                      style={{ marginTop: '5px' }}
-                    >
-                      Spacing between questions:
-                    </Dropdown>
-                    <Field postfix={'px'} style={{ marginTop: '5px' }}>
-                      Value:
-                    </Field>
-                  </Holder>
-
-                  <Divider
-                    sx={{
-                      marginTop: '10px',
-                      width: '100%',
-                      backgroundColor: '#4C4F53',
-                    }}
-                  />
-
-                  <Holder
-                    name="Exam order"
-                    id="order-dropdown"
-                    parent="advanced-dropdown"
-                    hierarchy={1}
-                  >
-                    <Dropdown
-                      id="order-groups"
-                      options={['Name', 'Language', 'Teacher', 'Subject']}
-                      default={'Name'}
-                    >
-                      Group by:
-                    </Dropdown>
-                  </Holder>
-                </Holder>
-
-                <Divider
-                  sx={{
-                    marginTop: '10px',
-                    width: '100%',
-                    backgroundColor: '#4C4F53',
-                  }}
-                />
-
-                <Holder name="Preview" id="preview-dropdown" hierarchy={0}>
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '250px',
-                      backgroundColor: 'white',
-                    }}
-                  ></div>
-                </Holder>
-              </div>
-
-              <Divider
-                sx={{
-                  width: '100%',
-                  backgroundColor: '#4C4F53',
+                {/* <Select
+                id="file-type"
+                options={['PDF', 'JSON']}
+                default={'PDF'}
+                value={state.settings.fileType}
+                onChange={(value) => {
+                  setState({
+                    ...state,
+                    settings: {
+                      ...state.settings,
+                      fileType: value,
+                    },
+                  });
                 }}
-              />
+              /> */}
+              </Container>
 
-              {/* Download button */}
+              {(state.teachers.length > 1 || state.languages.length > 1) && (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'column',
+                    width: '100%',
+                  }}
+                >
+                  <Divider
+                    sx={{
+                      marginTop: '10px',
+                      width: '100%',
+                      backgroundColor: '#4C4F53',
+                    }}
+                  />
 
-              {/* </div> */}
+                  {state.teachers.length > 1 && (
+                    <Container style={{ marginTop: '10px' }}>
+                      <Label style={{ marginRight: '5px ' }}>Teacher:</Label>
 
-              <Container
+                      <Menu
+                        id="teacher"
+                        options={['الكل', ...state.teachers]}
+                        default={'الكل'}
+                        value={state.settings.teacher}
+                        width="265px"
+                        onChange={(value) => {
+                          setState({
+                            ...state,
+                            settings: {
+                              ...state.settings,
+                              teacher: value,
+                            },
+                          });
+                        }}
+                      />
+                    </Container>
+                  )}
+
+                  {state.languages.length > 1 && (
+                    <Container style={{ marginTop: '10px' }}>
+                      <Label style={{ marginRight: '5px ' }}>
+                        Exam Language:
+                      </Label>
+                      <Menu
+                        id="language"
+                        options={['العربية', 'الإنجليزية']}
+                        default={'العربية'}
+                        value={state.settings.language}
+                        onChange={(value) => {
+                          setState({
+                            ...state,
+                            settings: {
+                              ...state.settings,
+                              language: value,
+                            },
+                          });
+                        }}
+                        width="265px"
+                      />
+                    </Container>
+                  )}
+                </div>
+              )}
+
+              <div
                 style={{
+                  display: 'flex',
                   justifyContent: 'center',
-                  margin: '0 -5px',
+                  alignItems: 'center',
+                  flexDirection: 'column',
+                  width: '100%',
                 }}
               >
-                <ButtonOverlay onClick={onCancel} sx={{ margin: '10px 5px' }}>
-                  Cancel
-                </ButtonOverlay>
-                <ButtonOverlay onClick={onDownload} sx={{ margin: '10px 5px' }}>
-                  Download
-                </ButtonOverlay>
-              </Container>
+                <Divider
+                  sx={{
+                    marginTop: '10px',
+                    width: '100%',
+                    backgroundColor: '#4C4F53',
+                  }}
+                />
+
+                {/* Show incorrect */}
+                <Container
+                  style={{
+                    marginTop: '10px',
+                  }}
+                >
+                  <Checkbox
+                    sx={{
+                      width: 24,
+                      height: 24,
+                    }}
+                    checked={state.showIncorrect}
+                    onChange={(event, value) => {
+                      setState({
+                        ...state,
+                        settings: {
+                          ...state.settings,
+                          showIncorrect: value,
+                        },
+                      });
+                    }}
+                  />
+                  <Label
+                    style={{
+                      marginLeft: '5px',
+                    }}
+                  >
+                    Show incorrect answers from initial exam entry
+                  </Label>
+                </Container>
+
+                {/* Show details on side */}
+                <Container
+                  style={{
+                    marginTop: '10px',
+                  }}
+                >
+                  <Checkbox
+                    sx={{
+                      width: 24,
+                      height: 24,
+                    }}
+                    checked={state.showDetailsSide}
+                    onChange={(event, value) => {
+                      setState({
+                        ...state,
+                        settings: {
+                          ...state.settings,
+                          showDetailsSide: value,
+                        },
+                      });
+                    }}
+                  />
+                  <Label
+                    style={{
+                      marginLeft: '5px',
+                    }}
+                  >
+                    Show answer details on the side for effective studying
+                  </Label>
+                </Container>
+
+                <Divider
+                  sx={{
+                    marginTop: '10px',
+                    width: '100%',
+                    backgroundColor: '#4C4F53',
+                  }}
+                />
+
+                {/* Download button */}
+                <Container
+                  style={{
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Button
+                    className="overlay-btn"
+                    sx={{
+                      width: '150px',
+                      fontSize: '14px',
+                      borderRadius: '0px',
+                      marginTop: '10px',
+                      marginRight: '5px',
+                    }}
+                    onClick={onCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="overlay-btn"
+                    sx={{
+                      width: '150px',
+                      fontSize: '14px',
+                      borderRadius: '0px',
+                      marginTop: '10px',
+                    }}
+                    onClick={onDownload}
+                  >
+                    Download
+                  </Button>
+                </Container>
+              </div>
             </div>
           );
         } else {

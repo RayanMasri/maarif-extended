@@ -38,6 +38,23 @@
   height: max-content;
 }
 
+.overlay-options-container::-webkit-scrollbar {
+  width: 10px;
+  height: 5px;
+}
+
+.overlay-options-container::-webkit-scrollbar-button {
+  display: none;
+}
+
+.overlay-options-container::-webkit-scrollbar-track-piece {
+  background-color: #848383;
+}
+
+.overlay-options-container::-webkit-scrollbar-thumb {
+  background-color: #4b4b4b;
+}
+
 /* .mxd-answers-side-other > .answer > .mxd-checkbox {
   display: flex !important;
   margin: 0px 0px 0px 0px !important;

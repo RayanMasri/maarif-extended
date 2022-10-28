@@ -31,10 +31,14 @@ import { jsPDF } from 'jspdf';
 // multiple line support for titles ***
 // stop using iframes somehow ***
 // add support for underlines ***
+// working cancel button when downloading exams ***
+// when scraping title, don't use a temporary div while keeping <strong> and other stylings ***
+// optimize by using one image for multiple questions that fit a page ***
 // download settings reset to default
 // download settings for title & answer font size and color
 //     - look for the perfect default for these
 // visual page number at page footer or close to page footer, e.g: 5/8 (https://stackoverflow.com/questions/52170355/jspdf-print-current-pagenumber-in-footer-of-all-pages)
+// * pre load, show how many duplicates, and strong titles there are
 // duplicate question removal option in download settings, with three sub-options:
 //     1. use fizzy search or use exact string comparison
 //     2. adjust accuracy threshold for fizzy search if used
@@ -48,8 +52,8 @@ import { jsPDF } from 'jspdf';
 // exam differentiation by turning subject, teacher and date created into hexadecimal strings to use as an ID
 // json to pdf refactoring and optimizations
 // organize json to pdf data for titles and answers into json objects instead of recurring variable names
-// working cancel button when downloading exams
 // support for json downloading
+// ---
 // progress info and confirm button after completion, info examples:
 //  - time elapsed
 //  - exams downloaded
@@ -63,57 +67,65 @@ import { jsPDF } from 'jspdf';
 // add subject filter
 // hide/disable cancel button when not able to cancel
 // when using promise.all to run concurrently, assign each result an index, and sort later accordingly
-// when scraping title, don't use a temporary div while keeping <strong> and other stylings
 // prevent active exams from being downloading or interacted with, disable their checkbox and download button or something
-// only show selection checkboxes and header data when the user prompts selection, e.g on the click of a button somewhere
-// option to use the chrome print option to print pages, by opening multiple windows and running window.print()
-// make use of .prepend()
-// optimize by using one image for multiple questions that fit a page
-// ability to switch locale between arabic & english
-// when nothing is selected, dont show buttons (maybe including checkbox) in header
 // show header buttons inside table column
 // change tab title when downloading and show progress message, change back title when done
 // make an option to use styles (original, modern, ...) and a final style for custom margins and font sizes which give you more options, the custom default settings come for the previous style
-// add loading screen in beggining for homework, and ability to disable it
-// exam favoriting
+
 // create new student-made exams by using other exams current questions
+
 // getting started tutorial in popup
+
 // direct link to exams from popup
+
 // increase resolution by increasing font size and increasing ratio to accommodate
-// grayscale option
+
 // show filtered exams next to total exams when downloading
+
 // loading circle when downloading pdf with huge exams
-// option to show exam name for each question, or exam names grouped in the footer of the page for the questions of that page
-// change github readme
+
 // full pdf preview, and specific question editing in that preview (see digital technology exams)
 // compression option
+
 // show final file size estimate before downloading and time estimate
-// find out how to optimize file size
+
 // use local storage to store data for exams to only fetch once
 // fetch exams while user is on the overlay, and show download button as disabled and a loading on it
+
 // custom user questions and answers that can be exported and imported as json files
 // - also has the ability to randomize it's own four answers with one being the correct, and three being taken from other questions ( requires a minimum of 4 questions )
+
 // question vertical spacing to differentiate
+
 // strong title detector
 // strong title toggler (if detected, or either way an ability to toggle if necessary)
+
 // option to customize spacing between questions, or option to shwo lines between them, or no spacing at all
+
 // advanced section of setting
+
 // make download button called start, and after finishing create a confirm/download button to download it
+
 // show preview after finishing
-// fetch and create pdf in background script
+
 // show exam name as header above all the questions in the exam to differentiate between exams
-// fix title overflow in irregular no.3
+
+// option to show exam name for each question, or exam names grouped in the footer of the page for the questions of that page
+
 // bugs:
-// br is too long
+// fix title overflow in irregular no.3
+// br is too long ***
 // slow responses (e.g: on cancel button) after finishing downloading for about 5 seconds
 // downloading more than 50 exams stops parsing question at the -57th question
+// - possible solution: fetch and create pdf in background script
 // downloading does not progress while window is not focused
 //    - progress bar does not move when window is not focused
 // merging english alphanumerics or arabic digits with arabic letters breaks the arabic ligatures
+// debug to show how much lines a title has
+
 // option menus are slow
 // option menu shows transparent options sometimes
 // option menu disables scrollbar *
-// debug to show how much lines a title has
 
 // irregulars:
 // https://smartems-dash.maarif.com.sa/ems/admin/exam.correct.answer/31860022/#!#rel (فطريات 3)
