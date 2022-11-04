@@ -46,6 +46,7 @@ export default function Holder(props) {
       updateHeight(diff);
     }
   };
+
   return (
     <div
       style={{
@@ -69,7 +70,12 @@ export default function Holder(props) {
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: '5px',
-          marginBottom: props.noNameMargin ? '0px' : '5px',
+          marginBottom: props.noNameMargin
+            ? state.open
+              ? '0px'
+              : '5px'
+            : '5px',
+          transition: `${props.transition || 0.1}s ease-in-out`,
         }}
       >
         {/* <div>{`${props.name} -> ${state.height}`}</div> */}
@@ -119,9 +125,13 @@ export default function Holder(props) {
       <div
         style={{
           height: state.open ? state.height : '0px',
-          transition: '0.1s ease-in-out',
+          transition: `${props.transition || 0.1}s ease-in-out`,
           overflow: 'hidden',
-          marginBottom: state.open ? '10px' : '0px',
+          marginBottom: props.noBottomMargin
+            ? '0px'
+            : state.open
+            ? '10px'
+            : '0px',
         }}
         id={`${props.id}-main`}
         ref={main}

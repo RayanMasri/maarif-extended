@@ -132,6 +132,10 @@ import { jsPDF } from 'jspdf';
 // https://smartems-dash.maarif.com.sa/ems/admin/exam.correct.answer/31860020/#!#rel (فطريات 4)
 // https://smartems-dash.maarif.com.sa/ems/admin/exam.correct.answer/31431596/#!#rel (Assign 12)
 
+// TODO:
+// transition when grabbing a draggable, background color transitions and a drag icon fades in rotating and stops after a few seconds,
+/// when placing down the draggable, the reverse happens
+
 const init = async () => {
   const { append } = useUtilityHook();
 
@@ -246,5 +250,19 @@ const init = async () => {
 
   window.jsPDF = pdf;
 };
+// const init = async () => {
+//   const { append } = useUtilityHook();
 
+//   // add overlay
+//   ReactDOM.render(
+//     ReactDOM.createPortal(<Hidden />, document.body),
+//     document.createElement('div')
+//   );
+//   ReactDOM.render(
+//     ReactDOM.createPortal(<Overlay />, document.body),
+//     document.createElement('div')
+//   );
+// };
+
+// init();
 if (window.location.pathname == '/reports/homework.report/') init();

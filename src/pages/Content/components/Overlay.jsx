@@ -15,6 +15,7 @@ import { Field } from './overlay/Field';
 import { Option } from './overlay/Option';
 import { ButtonOverlay } from './overlay/ButtonOverlay';
 import { ColorPicker } from './overlay/ColorPicker';
+import { SortableGrid } from './overlay/SortableGrid';
 
 const useStyles = makeStyles({
   root: {
@@ -47,6 +48,7 @@ function Overlay(props) {
     teachers: [],
     languages: [],
     exams: [],
+    datas: [],
     downloading: false,
     progressValue: 0,
     progressMessage: '',
@@ -90,7 +92,10 @@ function Overlay(props) {
     let teacher = row.querySelector('td:nth-child(7)');
     teacher = teacher.textContent.trim();
 
-    return { language: language, teacher: teacher };
+    let name = row.querySelector('td:nth-child(2)');
+    name = name.textContent.trim();
+
+    return { language: language, teacher: teacher, name: name };
   };
 
   const onRequest = (event) => {
@@ -108,6 +113,7 @@ function Overlay(props) {
       languages: languages,
       teachers: teachers,
       exams: exams,
+      datas: datas,
     });
   };
 
@@ -119,6 +125,7 @@ function Overlay(props) {
       teachers: [],
       languages: [],
       exams: [],
+      datas: [],
     });
   };
 
@@ -461,6 +468,14 @@ function Overlay(props) {
                   File type:
                 </Dropdown>
 
+                <Divider
+                  sx={{
+                    marginTop: '10px',
+                    width: '100%',
+                    backgroundColor: '#4C4F53',
+                  }}
+                />
+
                 {(state.teachers.length > 1 || state.languages.length > 1) && (
                   <div
                     style={{
@@ -471,14 +486,6 @@ function Overlay(props) {
                       width: '100%',
                     }}
                   >
-                    <Divider
-                      sx={{
-                        marginTop: '10px',
-                        width: '100%',
-                        backgroundColor: '#4C4F53',
-                      }}
-                    />
-
                     <Holder name="Filters" id="filters-dropdown" hierarchy={0}>
                       {state.teachers.length > 1 && (
                         <Dropdown
@@ -521,19 +528,15 @@ function Overlay(props) {
                         </Dropdown>
                       )}
                     </Holder>
+
+                    <Divider
+                      sx={{
+                        width: '100%',
+                        backgroundColor: '#4C4F53',
+                      }}
+                    />
                   </div>
                 )}
-
-                <Divider
-                  sx={{
-                    marginTop:
-                      state.teachers.length > 1 || state.languages.length > 1
-                        ? '0px'
-                        : '10px',
-                    width: '100%',
-                    backgroundColor: '#4C4F53',
-                  }}
-                />
 
                 <Option
                   style={{ marginTop: '10px' }}
@@ -579,6 +582,7 @@ function Overlay(props) {
                   name="Advanced Options"
                   id="advanced-dropdown"
                   hierarchy={0}
+                  noBottomMargin
                 >
                   <Dropdown
                     id="strong-titles"
@@ -661,14 +665,13 @@ function Overlay(props) {
 
                   <Divider
                     sx={{
-                      marginTop: '10px',
                       width: '100%',
                       backgroundColor: '#4C4F53',
                     }}
                   />
 
                   <Holder
-                    name="Resolution"
+                    name="Resolution & Compression"
                     id="resolution-dropdown"
                     parent="advanced-dropdown"
                     hierarchy={1}
@@ -690,7 +693,6 @@ function Overlay(props) {
 
                   <Divider
                     sx={{
-                      marginTop: '10px',
                       width: '100%',
                       backgroundColor: '#4C4F53',
                     }}
@@ -736,7 +738,6 @@ function Overlay(props) {
 
                   <Divider
                     sx={{
-                      marginTop: '10px',
                       width: '100%',
                       backgroundColor: '#4C4F53',
                     }}
@@ -755,12 +756,19 @@ function Overlay(props) {
                     >
                       Group by:
                     </Dropdown>
+
+                    <SortableGrid
+                      datas={state.datas}
+                      style={{ marginTop: '10px' }}
+                    />
+
+                    {/* This allows margin-bottom from the grid to push down on the dropdown */}
+                    <div>&nbsp;</div>
                   </Holder>
                 </Holder>
 
                 <Divider
                   sx={{
-                    marginTop: '10px',
                     width: '100%',
                     backgroundColor: '#4C4F53',
                   }}
