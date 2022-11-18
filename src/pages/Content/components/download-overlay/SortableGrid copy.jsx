@@ -19,17 +19,15 @@ const boxSize = 80;
 const gap = 7;
 const columns = 5;
 
+// same order when switchingg
+
 export function SortableGrid(props) {
   const [state, setState] = useState({
-    items: props.datas.map((item) => {
-      return {
-        name: item.name,
-        held: false,
-      };
-    }),
+    // items: props.datas.map((item) => item[props.access]),
+    items: props.items.map((item) => `item-${item}`),
+    access: props.access,
+    held: -1,
   });
-
-  console.log(state);
 
   const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
 
@@ -39,6 +37,47 @@ export function SortableGrid(props) {
       chunks.push(arr.slice(i, i + n));
     }
     return chunks;
+  };
+
+  const handleDragStart = (event) => {
+    let index = state.items.findIndex((item) => item == event.active.id);
+    console.log(`Holding ${index}`);
+    setState({
+      ...state,
+      held: index,
+    });
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    console.log(active.id);
+    console.log(over.id);
+    if (active.id !== over.id) {
+      const oldIndex = state.items.findIndex((item) => item == active.id);
+      const newIndex = state.items.findIndex((item) => item == over.id);
+
+      // [state.items[oldIndex], state.items[newIndex]] =  [state.items[newIndex], state.items[oldIndex]]
+      state.items = arrayMove(state.items, oldIndex, newIndex);
+
+      setState({
+        ...state,
+        items: state.items,
+        held: -1,
+      });
+
+      console.log(`on change ${JSON.stringify(state.items)}`);
+      props.onChange(numerize(state.items));
+    } else {
+      setState({
+        ...state,
+        held: -1,
+      });
+    }
+  };
+
+  const numerize = (array) => {
+    return array.map((item) => parseInt(item.split('-')[1]));
   };
 
   return (
@@ -96,10 +135,9 @@ export function SortableGrid(props) {
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
-        onDragMove={handleDragMove}
         onDragStart={handleDragStart}
       >
-        <SortableContext items={state.items.map((item) => item.name)}>
+        <SortableContext items={state.items}>
           <div
             style={{
               position: 'relative',
@@ -107,7 +145,6 @@ export function SortableGrid(props) {
             }}
           >
             {makeChunks(state.items, columns).map((chunk, index) => {
-              console.log(chunk);
               return (
                 <div
                   style={{
@@ -123,8 +160,8 @@ export function SortableGrid(props) {
                   {chunk.map((item, itemIndex) => {
                     return (
                       <SortableItem
-                        key={item.name}
-                        id={item.name}
+                        key={item}
+                        id={item}
                         style={{
                           width: boxSize,
                           height: boxSize,
@@ -155,7 +192,12 @@ export function SortableGrid(props) {
                             alignItems: 'center',
                           }}
                         >
-                          {item.name}
+                          {
+                            props.datas[parseInt(item.split('-')[1])][
+                              props.access
+                            ]
+                          }
+                          {/* {item} */}
                         </div>
                         <div
                           style={{
@@ -168,7 +210,8 @@ export function SortableGrid(props) {
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center',
-                            opacity: item.held ? 1 : 0,
+                            opacity:
+                              itemIndex + index * columns == state.held ? 1 : 0,
                             transition: '0.1s',
                           }}
                         >
@@ -176,11 +219,12 @@ export function SortableGrid(props) {
                             sx={{
                               width: 48,
                               height: 48,
-                              transform: item.held
-                                ? `rotate(${
-                                    Math.random() < 0.5 ? '-' : ''
-                                  }180deg)`
-                                : 'rotate(0)',
+                              transform:
+                                itemIndex + index * columns == state.held
+                                  ? `rotate(${
+                                      Math.random() < 0.5 ? '-' : ''
+                                    }180deg)`
+                                  : 'rotate(0)',
                               transition: '0.3s',
                             }}
                           />
@@ -196,44 +240,4 @@ export function SortableGrid(props) {
       </DndContext>
     </div>
   );
-  function handleDragMove(event) {
-    // console.log(event);
-  }
-
-  function handleDragStart(event) {
-    console.log('start');
-    console.log(event.active);
-    console.log(event.over);
-    let index = state.items.findIndex((item) => item.name == event.active.id);
-    state.items[index].held = true;
-    setState({
-      ...state,
-      items: state.items,
-    });
-  }
-
-  function handleDragEnd(event) {
-    console.log('end');
-    console.log(event.active);
-    console.log(event.over);
-    const { active, over } = event;
-
-    let index = state.items.findIndex((item) => item.name == event.active.id);
-    state.items[index].held = false;
-
-    if (active.id !== over.id) {
-      const oldIndex = state.items.findIndex((item) => item.name == active.id);
-      const newIndex = state.items.findIndex((item) => item.name == over.id);
-
-      setState({
-        ...state,
-        items: arrayMove(state.items, oldIndex, newIndex),
-      });
-    } else {
-      setState({
-        ...state,
-        items: state.items,
-      });
-    }
-  }
 }

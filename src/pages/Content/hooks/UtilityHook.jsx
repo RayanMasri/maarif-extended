@@ -172,11 +172,28 @@ export default function useUtilityHook() {
     );
   };
 
+  const getObjectArrayUnique = (array, property) => {
+    return [...new Set(array.map((data) => data[property]))];
+  };
+
+  const setObjectPropertyFromString = (obj, path, value) => {
+    const [head, ...rest] = path.split('.');
+
+    return {
+      ...obj,
+      [head]: rest.length
+        ? setObjectPropertyFromString(obj[head], rest.join('.'), value)
+        : value,
+    };
+  };
+
   return {
     append,
     loadImage,
     getImageDimensions,
     elementToCanvas,
     promisedSendMessage,
+    getObjectArrayUnique,
+    setObjectPropertyFromString,
   };
 }

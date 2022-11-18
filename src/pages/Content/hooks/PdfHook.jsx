@@ -149,6 +149,7 @@ export default function usePdfHook() {
 
   const examToJSON = async (index, fixIncorrect, callback) => {
     // window.jsPDF
+    console.log(index);
 
     document.querySelector(`.bar-at-${index}`);
 
@@ -171,7 +172,7 @@ export default function usePdfHook() {
     let doc = new DOMParser().parseFromString(html, 'text/html');
     let data = await extractData(doc, fixIncorrect);
 
-    callback(index);
+    // callback(index);
 
     return data;
   };
@@ -744,6 +745,30 @@ export default function usePdfHook() {
     return origin + title.height + answers.height;
   };
 
+  const calculateQuestionClusters = (questions) => {
+    let clusters = [];
+    let current = [];
+    let total = 0;
+    let page = pdfinternal.pageSize.getHeight();
+
+    for (let question of questions) {
+      let height = getQuestionHeightEstimate(question);
+
+      if (total + height > page) {
+        clusters.push(current);
+        current = [];
+        total = 0;
+      }
+
+      total += height;
+      current.push(question);
+    }
+
+    clusters.push(current);
+
+    return clusters;
+  };
+
   return {
     examToJSON,
     resetJsPDF,
@@ -751,5 +776,6 @@ export default function usePdfHook() {
     savePdf,
     getQuestionHeightEstimate,
     fillPdfWithQuestions,
+    calculateQuestionClusters,
   };
 }

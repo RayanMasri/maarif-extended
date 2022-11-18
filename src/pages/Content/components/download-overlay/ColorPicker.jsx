@@ -23,7 +23,6 @@ import Block from '@uiw/react-color-block';
 
 export function ColorPicker(props) {
   const [state, setState] = useState({
-    hex: '#000000',
     open: false,
   });
   const anchorRef = useRef(null);
@@ -73,9 +72,9 @@ export function ColorPicker(props) {
         style={{
           width: '44px',
           height: '18px',
-          backgroundColor: state.hex,
-          border: `2px solid ${getTextColor(state.hex)}`,
-          outline: getTextColor(state.hex, true) ? 'none' : '2px solid black',
+          backgroundColor: props.value,
+          border: `2px solid ${getTextColor(props.value)}`,
+          outline: getTextColor(props.value, true) ? 'none' : '2px solid black',
           borderRadius: '4px',
         }}
         ref={anchorRef}
@@ -103,8 +102,8 @@ export function ColorPicker(props) {
             <Paper>
               <ClickAwayListener onClickAway={handleClose}>
                 <Block
-                  color={state.hex}
-                  onChange={(color) => setState({ ...state, hex: color.hex })}
+                  color={props.value}
+                  onChange={(color) => props.onChange(color.hex)}
                 />
               </ClickAwayListener>
             </Paper>

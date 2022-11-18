@@ -6,10 +6,15 @@ import IconButton from '@mui/material/IconButton';
 const iconSize = 20;
 
 export default function Holder(props) {
-  const [state, setState] = useState({
-    open: true,
+  const [state, _setState] = useState({
+    open: props.open || false,
     height: 'max-content',
   });
+  const _state = useRef(state);
+  const setState = (data) => {
+    _state.current = data;
+    _setState(data);
+  };
 
   const main = useRef(null);
 
@@ -17,17 +22,34 @@ export default function Holder(props) {
     setTimeout(
       function () {
         setState({
-          ...state,
+          ..._state.current,
           height: document.querySelector(`#${props.id}-main > div`)
             .clientHeight,
         });
       },
-      ms == 0 ? 0 : 100 * ms + 100
+      ms == 0 ? 0 : 101 * ms + 101
     );
+  };
+
+  const forceUpdateHeight = (event) => {
+    console.log(event);
+    let { hierarchyDifference } = event.detail;
+    console.log(
+      `${props.id} got forced with ${hierarchyDifference} hierarchy diference`
+    );
+    updateHeight(hierarchyDifference);
   };
 
   useEffect(() => {
     updateHeight();
+    document.addEventListener(`force-update-${props.id}`, forceUpdateHeight);
+
+    return () => {
+      document.removeEventListener(
+        `force-update-${props.id}`,
+        forceUpdateHeight
+      );
+    };
   }, []);
 
   const toggleOpen = () => {
@@ -39,6 +61,7 @@ export default function Holder(props) {
       height: main.current.children[0].clientHeight,
     });
   };
+
   const dropDownInteract = (target) => {
     if (target.id != props.id) {
       let hierarchy = target.getAttribute('hierarchy');
