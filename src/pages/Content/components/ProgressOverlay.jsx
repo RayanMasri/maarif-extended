@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '@mui/material/Button';
 import LinearProgress from '@mui/material/LinearProgress';
 import { makeStyles } from '@mui/styles';
+import { useOverlayContext } from '../OverlayContext';
 
 const useStyles = makeStyles({
   root: {
@@ -12,7 +13,16 @@ const useStyles = makeStyles({
 export default function ProgressOverlay(props) {
   const classes = useStyles();
 
+  const { overlay, setOverlay } = useOverlayContext();
+
   const onProgressCancel = () => {
+    setOverlay({
+      ...overlay,
+      download: {
+        status: false,
+        requested: [],
+      },
+    });
     //   resetJsPDF(); // Reset jsPDF
     //   setState({
     //     ...state,
@@ -44,14 +54,16 @@ export default function ProgressOverlay(props) {
         }}
       >
         {/* {state.progressMessage.replace('<br/>', '\n')} */}
-        {props.download.progress.message}
+        {/* {props.download.progress.message} */}
+        {overlay.progress.message}
       </div>
 
       {/* <LinearProgressWithLabel value={50} /> */}
       <LinearProgress
         variant="determinate"
         // value={state.progressValue}
-        value={props.download.progress.value}
+        // value={props.download.progress.value}
+        value={overlay.progress.value}
         sx={{
           width: '100%',
           height: '10px',

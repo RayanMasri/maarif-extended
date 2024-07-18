@@ -147,27 +147,27 @@ export default function usePdfHook() {
     return questions;
   };
 
-  const examToJSON = async (index, fixIncorrect, callback) => {
+  const examToJSON = async (exam, fixIncorrect, callback) => {
     // window.jsPDF
-    console.log(index);
+    // console.log(index);
 
-    document.querySelector(`.bar-at-${index}`);
+    // document.querySelector(`.bar-at-${index}`);
 
-    let href = Array.from(
-      document.querySelectorAll(
-        '#ctl00_MainContentPlaceHolder_gridData > tbody > tr'
-      )
-    )
-      .find(
-        (item) =>
-          parseInt(item.querySelector('.bar-at').getAttribute('index')) == index
-      )
-      .querySelector('td:nth-child(2) > a')
-      .getAttribute('href');
+    // let href = Array.from(
+    //   document.querySelectorAll(
+    //     '#ctl00_MainContentPlaceHolder_gridData > tbody > tr'
+    //   )
+    // )
+    //   .find(
+    //     (item) =>
+    //       parseInt(item.querySelector('.bar-at').getAttribute('index')) == index
+    //   )
+    //   .querySelector('td:nth-child(2) > a')
+    //   .getAttribute('href');
 
-    let url = `https://smartems-dash.maarif.com.sa${href}`;
+    // let url = `https://smartems-dash.maarif.com.sa${href}`;
 
-    let html = await (await fetch(url)).text();
+    let html = await (await fetch(exam.url)).text();
 
     let doc = new DOMParser().parseFromString(html, 'text/html');
     let data = await extractData(doc, fixIncorrect);

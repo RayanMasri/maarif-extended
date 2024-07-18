@@ -5,73 +5,111 @@ import Checkbox from '@mui/material/Checkbox';
 // import IconButton from './IconButton.jsx';
 import QuizIcon from '@mui/icons-material/Quiz';
 import DownloadRoundedIcon from '@mui/icons-material/DownloadRounded';
+import { useMainContext } from '../MainContext';
+import useRequestHook from '../hooks/RequestHook';
 
 function Header(props) {
-  const [state, setState] = useState({
-    checked: false,
-    indeterminate: false,
-  });
+  const { main, setMain } = useMainContext();
+  // const [state, setState] = useState({
+  //   checked: false,
+  //   indeterminate: false,
+  // });
 
-  const onRequest = (event) => {
-    // Check if all exams are selected
-    if (!state.indeterminate && state.checked) {
-      let exams = [];
+  const { requestDownload } = useRequestHook();
 
-      for (let i = 0; i < document.querySelectorAll('.bar-at').length; i++) {
-        exams.push(i);
-      }
+  // const onRequest = (event) => {
+  //   // Check if all exams are selected
+  //   if (!state.indeterminate && state.checked) {
+  //     let exams = [];
 
-      document.dispatchEvent(
-        new CustomEvent(event, {
-          detail: { exams: exams },
-        })
-      );
+  //     for (let i = 0; i < document.querySelectorAll('.bar-at').length; i++) {
+  //       exams.push(i);
+  //     }
 
+  //     document.dispatchEvent(
+  //       new CustomEvent(event, {
+  //         detail: { exams: exams },
+  //       })
+  //     );
+
+  //     return;
+  //   }
+
+  //   // Get all checked checkboxes and get their parent's indices
+  //   let indices = [];
+
+  //   for (let element of Array.from(
+  //     document.querySelectorAll('.bar-at > span.Mui-checked')
+  //   )) {
+  //     indices.push(parseInt(element.parentElement.getAttribute('index')));
+  //   }
+
+  //   document.dispatchEvent(
+  //     new CustomEvent(event, {
+  //       detail: { exams: indices },
+  //     })
+  //   );
+  // };
+
+  // const onRequestChange = (event) => {
+  //   let { every, some } = event.detail;
+
+  //   setState({
+  //     checked: every, // If all the exams are selected, show a check, otherwise show nothing
+  //     indeterminate: !every && some, // If not all exams are selected, then show indeterminate if a few are selected
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   document.addEventListener('header-change', onRequestChange);
+
+  //   return () => {
+  //     document.removeEventListener('header-change', onRequestChange);
+  //   };
+  // });
+
+  // start: inclusive, end: exclusive
+  const createRange = (start, end) => {
+    let result = [];
+    for (let i = start; i < end; i++) {
+      result.push(i);
+    }
+    return result;
+  };
+
+  const onChange = (event, value) => {
+    if (isIndeterminate()) {
+      setMain({
+        ...main,
+        selected: [],
+      });
       return;
     }
 
-    // Get all checked checkboxes and get their parent's indices
-    let indices = [];
+    setMain({
+      ...main,
+      selected: isChecked() ? [] : createRange(0, main.maximum),
+    });
+  };
 
-    for (let element of Array.from(
-      document.querySelectorAll('.bar-at > span.Mui-checked')
-    )) {
-      indices.push(parseInt(element.parentElement.getAttribute('index')));
-    }
-
-    document.dispatchEvent(
-      new CustomEvent(event, {
-        detail: { exams: indices },
-      })
+  const isIndeterminate = () => {
+    let result =
+      main.selected.length != main.maximum && main.selected.length != 0;
+    console.log(
+      `Checking if indeterminate based on ${main.selected.length} (max: ${main.maximum}), result: ${result}`
     );
+
+    return result;
   };
 
-  const onRequestChange = (event) => {
-    let { every, some } = event.detail;
-
-    setState({
-      checked: every, // If all the exams are selected, show a check, otherwise show nothing
-      indeterminate: !every && some, // If not all exams are selected, then show indeterminate if a few are selected
-    });
-  };
-
-  useEffect(() => {
-    document.addEventListener('header-change', onRequestChange);
-
-    return () => {
-      document.removeEventListener('header-change', onRequestChange);
-    };
-  });
-
-  const onChange = (event, value) => {
-    if (state.indeterminate) value = false;
-
-    props.onChange(value);
-
-    setState({
-      checked: value,
-      indeterminate: false,
-    });
+  const isChecked = () => {
+    let result = !isIndeterminate()
+      ? main.selected.length == main.maximum
+      : false;
+    console.log(
+      `Checking if checked based on ${main.selected.length} (max: ${main.maximum}), result: ${result}`
+    );
+    return result;
   };
 
   return (
@@ -85,8 +123,8 @@ function Header(props) {
     >
       <Checkbox
         onChange={onChange}
-        checked={state.checked}
-        indeterminate={state.indeterminate}
+        checked={isChecked()}
+        indeterminate={isIndeterminate()}
       />
 
       {/* <Button
@@ -103,7 +141,23 @@ function Header(props) {
           width: 30,
           height: 30,
         }}
-        onClick={() => onRequest('request-download')}
+        // onClick={() => onRequest('request-download')}
+        onClick={() => {
+          requestDownload(main.selected);
+          // setMain({
+          //   ...main,
+          // });
+          // console.log('Want to downloade');
+          // console.log(
+          //   `Main selected (${main.selected.length}): ${JSON.stringify(
+          //     main.selected
+          //   )}`
+          // );
+          // setState({
+          //   ...state,
+          //   john: main.selected.length,
+          // });
+        }}
       >
         <DownloadRoundedIcon sx={{ width: 24, height: 24 }} />
       </IconButton>
@@ -112,7 +166,7 @@ function Header(props) {
           width: 30,
           height: 30,
         }}
-        onClick={() => onRequest('request-retake')}
+        // onClick={() => onRequest('request-retake')}
       >
         <QuizIcon sx={{ width: 24, height: 24 }} />
       </IconButton>

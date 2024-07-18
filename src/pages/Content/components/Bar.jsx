@@ -100,6 +100,8 @@ function Bar(props) {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        height: '100%',
+        backgroundColor: 'red',
       }}
       index={props.index}
     >

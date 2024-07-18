@@ -17,6 +17,8 @@ import { ButtonOverlay } from './ButtonOverlay';
 import { ColorPicker } from './ColorPicker';
 import { SortableGrid } from './SortableGrid';
 
+import { useOverlayContext } from '../../OverlayContext';
+
 import useFilterHook from '../../hooks/FilterHook.jsx';
 
 export default function DownloadOverlay(props) {
@@ -29,6 +31,8 @@ export default function DownloadOverlay(props) {
     fillPdfWithQuestions,
   } = usePdfHook();
   const { filterExams } = useFilterHook();
+
+  const { overlay, setOverlay } = useOverlayContext();
 
   const [state, setState] = useState({
     inputLength: 0,
@@ -66,10 +70,21 @@ export default function DownloadOverlay(props) {
   const onDownload = async () => {
     let datas = props.settings.examOrder.datas || props.requested.datas;
     let exams = filterExams(datas, props.settings);
-    console.log(exams);
-    return;
+
     props.onProgress({
       downloading: true,
+      progress: {
+        value: 0,
+        message: 'Collecting exam data',
+      },
+    });
+
+    // console.log(
+    //   `Set downloading status to "${props.parent.download.downloading}"`
+    // );
+
+    setOverlay({
+      ...overlay,
       progress: {
         value: 0,
         message: 'Collecting exam data',
@@ -92,28 +107,35 @@ export default function DownloadOverlay(props) {
       //   });
       // });
 
+      // console.log(exam.index);
       console.log(exam);
-      console.log(exam.index);
-      let promise = examToJSON(exam.index, !props.settings.showWrong);
+      let promise = examToJSON(exam, !props.settings.showWrong);
 
       json.push(await promise);
 
-      props.onProgress({
-        ...props.parent.download,
+      console.log(`Converted exam page to JSON`);
+      console.log(json);
+
+      setOverlay({
+        ...overlay,
         progress: {
           value: Math.round((json.length / exams.length) * 100),
           message: `Collecting exam data for exam ${json.length}/${exams.length}`,
         },
       });
 
-      if (!props.parent.download.downloading)
+      if (!overlay.download.status) {
         return console.log(
-          `Cancelled ${json.length == exams.length ? 'un' : ''}successfully`
+          `Cancelled exam to json ${
+            json.length == exams.length ? 'un' : ''
+          }successfully`
         );
+      }
     }
 
-    if (!props.parent.download.downloading)
-      return console.log('Cancelled after loading');
+    if (!overlay.download.status) {
+      return console.log('Cancelled exam to json after loading');
+    }
 
     json = json.flat();
 
@@ -178,6 +200,10 @@ export default function DownloadOverlay(props) {
     );
   };
 
+  // const getFiltered = () => {
+  //   return 'john';
+  // };
+
   return (
     <div
       style={{
@@ -191,7 +217,7 @@ export default function DownloadOverlay(props) {
     >
       <Container style={{ justifyContent: 'center ' }}>
         <Label style={{ fontSize: '18px' }}>
-          Downloading {props.requested.exams.length} exam(s)
+          Downloading {props.requested.length} exam(s)
         </Label>
       </Container>
 
@@ -768,6 +794,14 @@ export default function DownloadOverlay(props) {
         <ButtonOverlay onClick={onDownload} sx={{ margin: '10px 5px' }}>
           Download
         </ButtonOverlay>
+        {/* <ButtonOverlay
+          onClick={() => {
+            console.log(getFiltered());
+          }}
+          sx={{ margin: '10px 5px' }}
+        >
+          John
+        </ButtonOverlay> */}
       </Container>
     </div>
   );

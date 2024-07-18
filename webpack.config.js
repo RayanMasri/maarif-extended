@@ -150,6 +150,7 @@ var options = {
         },
       ],
     }),
+
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -190,6 +191,15 @@ var options = {
       patterns: [
         {
           from: 'src/assets/img/checkbox.svg',
+          to: path.join(__dirname, 'build'),
+          force: true,
+        },
+      ],
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: 'src/assets/tablesorter.js',
           to: path.join(__dirname, 'build'),
           force: true,
         },

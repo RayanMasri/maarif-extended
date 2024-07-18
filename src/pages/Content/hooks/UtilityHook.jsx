@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function useUtilityHook() {
   const append = (component, parent, referral, index) => {
@@ -187,7 +188,264 @@ export default function useUtilityHook() {
     };
   };
 
+  // Convert HTMl string into a manipulatable element
+  const solidifyHTML = (html) => {
+    let div = document.createElement('div');
+    div.innerHTML = html;
+    return div;
+  };
+
+  // Convert children and sub-children of an HTML element into react components,
+  // while also injecting requested children from the "commands" parameter
+  const getReactifiedChildren = (element, hierarchy, commands = null) => {
+    if (element.children.length == 0) return null;
+
+    const camelCases = {
+      colspan: 'colSpan',
+      onclick: 'onClick',
+      class: 'className',
+      cellpadding: 'cellPadding',
+      onchange: 'onChange',
+      cellspacing: 'cellSpacing',
+      onsubmit: 'onSubmit',
+    };
+
+    let children = Array.from(element.children).map((child, index) => {
+      let TagName = child.tagName.toLowerCase();
+
+      // let obey = null;
+      let injected = null;
+      if (commands != null) {
+        commands.map((command) => {
+          if (command.index != undefined) return;
+
+          // if (child.parentElement.querySelector(command.reference) == child) {
+          if (element.querySelector(command.reference) == child) {
+            injected = command.injected;
+            // obey = command;
+          }
+        });
+      }
+
+      let attributes = {};
+      if (child.attributes.length != 0) {
+        Array.from(child.attributes).map((attribute) => {
+          let value = attribute.nodeValue;
+          let name = attribute.nodeName;
+          switch (name) {
+            case 'style':
+              // If style is empty, cancel out the whole attribute
+              if (value == '') return;
+              let style = {};
+
+              value
+                .split(';')
+                .filter((e) => e)
+                .map((styling) => {
+                  let [property, assigned] = styling
+                    .trim()
+                    .split(':')
+                    .map((e) => e.trim());
+
+                  property = property.split('-');
+                  property = [property[0]]
+                    .concat(
+                      property
+                        .slice(1)
+                        .map((e) => e[0].toUpperCase() + e.slice(1))
+                    )
+                    .join('');
+
+                  style[property] = assigned;
+                });
+
+              value = style;
+              break;
+
+            case 'onclick':
+              // console.log(child);
+              // console.log(value);
+              break;
+
+            default:
+              if (Object.keys(camelCases).includes(name)) {
+                name = camelCases[name];
+              }
+              break;
+          }
+
+          attributes[name] = value;
+        });
+      }
+
+      // if (TagName == 'input') {
+      //   console.log(attributes);
+      //   console.log(attributes);
+      //   console.log(child.children.length);
+      //   console.log(child.innerHTML || undefined);
+      // }
+
+      const getText = (nodes) => {
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].nodeType === Node.TEXT_NODE) {
+            return nodes[i].textContent.trim();
+          }
+        }
+        return null;
+      };
+
+      const getContent = () => {
+        if (TagName == 'input') return null;
+
+        let innerHTML = child.innerHTML.trim() || null;
+
+        if (innerHTML) innerHTML = innerHTML.split('&nbsp;').join('\xa0');
+
+        if (innerHTML && innerHTML.includes('<!--')) {
+          innerHTML = null;
+
+          // let actual = '';
+          // let comments = [];
+          // innerHTML.split('<!--').map((item) => {
+          //   if (item.includes('-->')) {
+          //     let [comment, text] = item.split('-->');
+          //     actual += text;
+          //     comments.push(comment);
+          //   } else {
+          //     actual += item;
+          //   }
+          // });
+
+          // console.log(innerHTML);
+          // console.log(actual);
+          // console.log(comments);
+        }
+
+        // let textContent = '';
+
+        // for (let i = 0; i < child.childNodes.length; i++) {
+        //   if (child.childNodes[i].nodeType === Node.TEXT_NODE) {
+        //     textContent = child.childNodes[i].textContent.trim();
+        //   }
+        // }
+        // console.log(getReactifiedChildren(child, hierarchy + 1, commands))
+        // console.log(textContent)
+        // console.log(getReactifiedChildren(child, hierarchy + 1, commands))
+        // console.log(textConten)
+
+        return child.children.length == 0
+          ? innerHTML
+          : getReactifiedChildren(child, hierarchy + 1, commands);
+      };
+
+      // if (TagName == 'thead') {
+      //   console.log(getContent());
+      //   console.log(getText(child.childNodes));
+      // }
+
+      // {TagName == 'input'
+      //   : child.children.length == 0
+      //   ? child.innerHTML || undefined
+      //   : getReactifiedChildren(child, hierarchy + 1, commands)}
+      // #ctl00_MainContentPlaceHolder_gridData > tbody > tr:nth-child(3) > td:nth-child(1)
+      const uninjectables = ['input', 'img', 'br'];
+      if (uninjectables.includes(TagName)) {
+        return (
+          <TagName key={`reactified-h${hierarchy}-i${index}`} {...attributes}>
+            {getContent()}
+            {/* {getReactifiedChildren(child, hierarchy + 1, commands) || null} */}
+            {/* {child.innerHTML || undefined} */}
+            {/* {injected && injected} */}
+          </TagName>
+        );
+      } else {
+        // console.log(getText(child.childNodes));
+        return (
+          <TagName key={`reactified-h${hierarchy}-i${index}`} {...attributes}>
+            {getContent()}
+            {child.children.length != 0 ? getText(child.childNodes) : null}
+
+            {/* {getReactifiedChildren(child, hierarchy + 1, commands) || null} */}
+            {/* {child.innerHTML || undefined} */}
+
+            {injected != null ? injected : null}
+          </TagName>
+        );
+      }
+    });
+
+    for (let command of commands) {
+      if (command.index == undefined || element.parentElement == null) continue;
+
+      if (element.parentElement.querySelector(command.reference) == element) {
+        console.log(element);
+        console.log(command);
+
+        for (let injection of command.injected) {
+          children.splice(command.index, 0, injection);
+        }
+      }
+    }
+
+    // console.log(element);
+    // console.log(children);
+
+    return children;
+  };
+
+  const createJsPDFObject = () => {
+    return new Promise((resolve, reject) => {
+      let pdf = new jsPDF();
+      fetch(chrome.runtime.getURL('trado.ttf')).then(async (response) => {
+        let blob = await response.blob();
+        var reader = new FileReader();
+        reader.onload = function () {
+          pdf.addFileToVFS('trado.ttf', this.result);
+          pdf.addFont('trado.ttf', 'trado', 'normal');
+
+          resolve(pdf);
+        }; // <--- `this.result` contains a base64 data URI
+        reader.readAsBinaryString(blob);
+      });
+    });
+  };
+
+  const onMutationObserverSettle = (page) => {
+    return new Promise((resolve, reject) => {
+      window.onload = () => {
+        let timeout = setTimeout(resolve, 3000);
+
+        let observer = new MutationObserver((record) => {
+          // console.log(record);
+
+          // if (
+          //   [...new Set(record.map((item) => item.target.className))][0] ==
+          //   'pace-progress'
+          // )
+          //   return;
+
+          if (timeout != null) clearTimeout(timeout);
+
+          timeout = setTimeout(resolve, 1000);
+
+          // console.log([
+          //   ...new Set(record.map((item) => item.target.className)),
+          // ]);
+        });
+
+        observer.observe(page, {
+          // observer.observe(document.querySelector('.pace'), {
+          childList: true,
+          // attributes: true,
+          subtree: true,
+        });
+      };
+    });
+  };
+
   return {
+    solidifyHTML,
+    getReactifiedChildren,
     append,
     loadImage,
     getImageDimensions,
@@ -195,5 +453,7 @@ export default function useUtilityHook() {
     promisedSendMessage,
     getObjectArrayUnique,
     setObjectPropertyFromString,
+    createJsPDFObject,
+    onMutationObserverSettle,
   };
 }

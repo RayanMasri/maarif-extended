@@ -31,7 +31,10 @@ function Hidden() {
     <div
       className="hidden-mxd"
       style={{
-        // position: 'fixed',
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        zIndex: 5000,
         // overflow: 'hidden',
         height: 'max-content',
         width: `${

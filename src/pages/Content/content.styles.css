@@ -1,3 +1,18 @@
+/* .mock-row > td {
+  padding-right: 0px !important;
+}
+.mock-table > tr:nth-child(even) > td {
+  background-color: lightgray;
+}
+
+.mock-table > tr:first-child > th {
+  background-color: #4c4f53;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
+
 .MuiButtonBase-root {
   border: none;
   height: max-content;

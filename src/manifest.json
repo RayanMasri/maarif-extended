@@ -32,7 +32,8 @@
         "checkbox-right.svg",
         "checkbox-wrong.svg",
         "checkbox.svg",
-        "trado.ttf"
+        "trado.ttf",
+        "tablesorter.js"
       ],
       "matches": [
         "https://smartems-dash.maarif.com.sa/*",

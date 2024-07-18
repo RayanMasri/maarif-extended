@@ -5,12 +5,17 @@ import Button from '@mui/material/Button';
 import useUtilityHook from '../hooks/UtilityHook.jsx';
 import LinearProgress from '@mui/material/LinearProgress';
 import { makeStyles } from '@mui/styles';
+import { useMainContext } from '../MainContext';
+import { useOverlayContext } from '../OverlayContext';
 
 import Holder from './Holder.jsx';
 import html2canvas from 'html2canvas';
 
 import DownloadOverlay from './download-overlay/DownloadOverlay.jsx';
 import ProgressOverlay from './ProgressOverlay.jsx';
+
+// TODO: Disable exam order option when all sorting options only include one, or hide the exam order option entirely
+//  - Also remove sorting options that include one?
 
 const requested = {
   default: {
@@ -80,6 +85,9 @@ function Overlay(props) {
   const { getObjectArrayUnique, setObjectPropertyFromString } =
     useUtilityHook();
 
+  const { main, setMain } = useMainContext();
+  const { overlay, setOverlay } = useOverlayContext();
+
   const [state, _setState] = useState({
     // settings: {
     //   showIncorrect: false,
@@ -109,10 +117,11 @@ function Overlay(props) {
   };
 
   useEffect(() => {
-    document.addEventListener('request-download', onRequest);
-    document.addEventListener('request-retake', onRequest);
+    // document.addEventListener('request-download', onRequest);
+    // document.addEventListener('request-retake', onRequest);
 
     // Necessary to load the arabic font
+    // TODO: transfer to hidden component
     let hidden = document.querySelector('.hidden-mxd');
     html2canvas(hidden, {
       width: hidden.offsetWidth,
@@ -121,11 +130,60 @@ function Overlay(props) {
       console.log(canvas.toDataURL('image/png'));
     });
 
-    return () => {
-      document.removeEventListener('request-download', onRequest);
-      document.addEventListener('request-retake', onRequest);
-    };
+    // return () => {
+    // document.removeEventListener('request-download', onRequest);
+    // document.addEventListener('request-retake', onRequest);
+    // };
   }, []);
+
+  useEffect(() => {
+    // Skip on initialization
+    if (main.data == null) return;
+
+    if (overlay.download.requested.length == 0) return;
+
+    console.log(
+      `Successfully opened overlay to download ${overlay.download.requested.length} exam(s)`
+    );
+
+    // let exams = event.detail.exams;
+
+    // console.log(main.data);
+    let datas = overlay.download.requested.map((item) => {
+      return {
+        ...item,
+        // TODO: Change to "direction" later (as in RTL or LTR)
+        language: item.subject.includes('الإنجليزية') ? 'EN' : 'AR',
+      };
+    });
+    // console.log(exams);
+    // if (exams.length == 0) return;
+
+    // let datas = exams.map((exam) => {
+    //   return {
+    //     ...acquireDataFromExamIndex(exam),
+    //     index: exam,
+    //   };
+    // });
+    let teachers = getObjectArrayUnique(datas, 'teacher');
+    let languages = getObjectArrayUnique(datas, 'language');
+    let subjects = getObjectArrayUnique(datas, 'subject');
+
+    setState({
+      ..._state.current,
+      active: true,
+      type: 'request-download',
+      requested: {
+        datas: datas,
+        length: overlay.download.requested.length,
+        uniques: {
+          teachers: teachers,
+          languages: languages,
+          subjects: subjects,
+        },
+      },
+    });
+  }, [JSON.stringify(overlay.download)]);
 
   const acquireDataFromExamIndex = (index) => {
     let row = document.querySelector(
@@ -156,46 +214,53 @@ function Overlay(props) {
     };
   };
 
-  const onRequest = (event) => {
-    console.log(event);
-    let exams = event.detail.exams;
+  // const onRequest = (event) => {
+  //   console.log(event);
+  //   let exams = event.detail.exams;
 
-    console.log(exams);
-    if (exams.length == 0) return;
+  //   console.log(exams);
+  //   if (exams.length == 0) return;
 
-    let datas = exams.map((exam) => {
-      return {
-        ...acquireDataFromExamIndex(exam),
-        index: exam,
-      };
-    });
-    console.log(datas);
-    let teachers = getObjectArrayUnique(datas, 'teacher');
-    let languages = getObjectArrayUnique(datas, 'language');
-    let subjects = getObjectArrayUnique(datas, 'subject');
+  //   let datas = exams.map((exam) => {
+  //     return {
+  //       ...acquireDataFromExamIndex(exam),
+  //       index: exam,
+  //     };
+  //   });
+  //   console.log(datas);
+  //   let teachers = getObjectArrayUnique(datas, 'teacher');
+  //   let languages = getObjectArrayUnique(datas, 'language');
+  //   let subjects = getObjectArrayUnique(datas, 'subject');
 
-    setState({
-      ..._state.current,
-      active: true,
-      type: event.type,
-      requested: {
-        datas: datas,
-        exams: exams,
-        uniques: {
-          teachers: teachers,
-          languages: languages,
-          subjects: subjects,
-        },
-      },
-    });
-  };
+  //   setState({
+  //     ..._state.current,
+  //     active: true,
+  //     type: event.type,
+  //     requested: {
+  //       datas: datas,
+  //       exams: exams,
+  //       uniques: {
+  //         teachers: teachers,
+  //         languages: languages,
+  //         subjects: subjects,
+  //       },
+  //     },
+  //   });
+  // };
 
   const onCancel = () => {
-    setState({
-      ...state,
-      active: false,
-      requested: requested.default,
+    setMain({
+      ...main,
+      download: {
+        status: false,
+        requested: [],
+      },
     });
+    // setState({
+    //   ...state,
+    //   active: false,
+    //   requested: requested.default,
+    // });
   };
 
   // const getActive = () => {
@@ -237,10 +302,11 @@ function Overlay(props) {
         left: '0',
         backgroundColor: 'rgba(0, 0, 0, 0.33)',
         zIndex: '35000',
-        display: state.active ? 'flex' : 'none',
+        display: main.download.status ? 'flex' : 'none',
         justifyContent: 'center',
         alignItems: 'center',
         direction: 'ltr',
+        fontWeight: 'normal',
       }}
       direction="ltr"
     >
@@ -272,11 +338,13 @@ function Overlay(props) {
           onSettingChange={(setting, value) => {
             setState(setObjectPropertyFromString(state, setting, value));
           }}
-          hidden={state.download.downloading}
+          // hidden={state.download.downloading}
+          hidden={overlay.download.status}
         />
         <ProgressOverlay
           download={state.download}
-          hidden={!state.download.downloading}
+          // hidden={!state.download.downloading}
+          hidden={!overlay.download.status}
         />
       </div>
     </div>
